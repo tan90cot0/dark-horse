@@ -137,95 +137,45 @@ const ExpandableText = React.memo(({ text, maxLength = 300 }: { text: string; ma
 // Component to display ALL memory fields with progressive loading - adapted from old code
 const AdditionalMemoryFields = React.memo(({ event }: { event: TimelineEvent }) => {
   // Comprehensive fields list organized by importance for progressive loading
-  const allFieldConfigs = [
-    // Tier 1: Most frequently used fields (load immediately)
-    { key: 'significance', label: 'Significance', icon: '⭐', color: 'text-yellow-400 bg-yellow-500/20', tier: 1 },
-    { key: 'location', label: 'Location', icon: '📍', color: 'text-green-400 bg-green-500/20', tier: 1 },
-    { key: 'context', label: 'Context', icon: '🔍', color: 'text-blue-400 bg-blue-500/20', tier: 1 },
-    { key: 'outcome', label: 'Outcome', icon: '🎯', color: 'text-purple-400 bg-purple-500/20', tier: 1 },
-    { key: 'realization', label: 'Realization', icon: '💡', color: 'text-yellow-400 bg-yellow-500/20', tier: 1 },
-    { key: 'gift', label: 'Gift', icon: '🎁', color: 'text-pink-400 bg-pink-500/20', tier: 1 },
-    { key: 'restaurant', label: 'Restaurant', icon: '🍽️', color: 'text-orange-400 bg-orange-500/20', tier: 1 },
-    { key: 'notes', label: 'Notes', icon: '📋', color: 'text-gray-400 bg-gray-500/20', tier: 1 },
-    { key: 'note', label: 'Note', icon: '📝', color: 'text-gray-400 bg-gray-500/20', tier: 1 },
+  const allFields = [
+    // Tier 1: Most important fields
+    { key: 'significance', label: 'Significance', icon: '⭐', color: 'bg-yellow-500/20 text-yellow-300' },
+    { key: 'context', label: 'Context', icon: '🔍', color: 'bg-blue-500/20 text-blue-300' },
+    { key: 'notes', label: 'Notes', icon: '📝', color: 'bg-green-500/20 text-green-300' },
     
-    // Tier 2: Important fields (load with slight delay)
-    { key: 'activities', label: 'Activities', icon: '🎯', color: 'text-indigo-400 bg-indigo-500/20', tier: 2 },
-    { key: 'gesture', label: 'Gesture', icon: '🤝', color: 'text-blue-400 bg-blue-500/20', tier: 2 },
-    { key: 'memorable_event', label: 'Memorable Event', icon: '🌟', color: 'text-yellow-400 bg-yellow-500/20', tier: 2 },
-    { key: 'milestone', label: 'Milestone', icon: '🏁', color: 'text-yellow-400 bg-yellow-500/20', tier: 2 },
-    { key: 'food', label: 'Food', icon: '🍕', color: 'text-orange-400 bg-orange-500/20', tier: 2 },
-    { key: 'celebration_type', label: 'Celebration Type', icon: '🎉', color: 'text-pink-400 bg-pink-500/20', tier: 2 },
-    { key: 'memorable_quote', label: 'Memorable Quote', icon: '💬', color: 'text-yellow-400 bg-yellow-500/20', tier: 2 },
-    { key: 'famous_quote', label: 'Famous Quote', icon: '💬', color: 'text-cyan-400 bg-cyan-500/20', tier: 2 },
-    { key: 'saved_message', label: 'Saved Message', icon: '💌', color: 'text-pink-400 bg-pink-500/20', tier: 2 },
-    { key: 'firsts', label: 'Firsts', icon: '🏆', color: 'text-yellow-400 bg-yellow-500/20', tier: 2 },
-    { key: 'first_experience', label: 'First Experience', icon: '🥇', color: 'text-yellow-400 bg-yellow-500/20', tier: 2 },
-    { key: 'emotional_impact', label: 'Emotional Impact', icon: '💥', color: 'text-red-400 bg-red-500/20', tier: 2 },
-    { key: 'companions', label: 'Companions', icon: '👥', color: 'text-blue-400 bg-blue-500/20', tier: 2 },
+    // Tier 2: Relationship context
+    { key: 'companions', label: 'Companions', icon: '👥', color: 'bg-purple-500/20 text-purple-300' },
+    { key: 'location', label: 'Location', icon: '📍', color: 'bg-red-500/20 text-red-300' },
+    { key: 'mood', label: 'Mood', icon: '😊', color: 'bg-pink-500/20 text-pink-300' },
     
-    // Tier 3: All other fields (load progressively)
-    { key: 'adventure', label: 'Adventure', icon: '🏔️', color: 'text-green-400 bg-green-500/20', tier: 3 },
-    { key: 'attempted_dish', label: 'Attempted Dish', icon: '👨‍🍳', color: 'text-orange-400 bg-orange-500/20', tier: 3 },
-    { key: 'successful_dish', label: 'Successful Dish', icon: '👨‍🍳', color: 'text-green-400 bg-green-500/20', tier: 3 },
-    { key: 'ingredients', label: 'Ingredients', icon: '🧄', color: 'text-green-400 bg-green-500/20', tier: 3 },
-    { key: 'budget_notes', label: 'Budget Notes', icon: '💰', color: 'text-yellow-400 bg-yellow-500/20', tier: 3 },
-    { key: 'care', label: 'Care', icon: '💚', color: 'text-green-400 bg-green-500/20', tier: 3 },
-    { key: 'conflict', label: 'Conflict', icon: '⚔️', color: 'text-red-400 bg-red-500/20', tier: 3 },
-    { key: 'constraint', label: 'Constraint', icon: '⛓️', color: 'text-gray-400 bg-gray-500/20', tier: 3 },
-    { key: 'discovery', label: 'Discovery', icon: '🔬', color: 'text-cyan-400 bg-cyan-500/20', tier: 3 },
-    { key: 'emotional_support', label: 'Emotional Support', icon: '🤗', color: 'text-pink-400 bg-pink-500/20', tier: 3 },
-    { key: 'event', label: 'Event', icon: '📅', color: 'text-blue-400 bg-blue-500/20', tier: 3 },
-    { key: 'festival', label: 'Festival', icon: '🎊', color: 'text-pink-400 bg-pink-500/20', tier: 3 },
-    { key: 'flex', label: 'Flex', icon: '💫', color: 'text-purple-400 bg-purple-500/20', tier: 3 },
-    { key: 'food_choice', label: 'Food Choice', icon: '🍴', color: 'text-orange-400 bg-orange-500/20', tier: 3 },
-    { key: 'logistics', label: 'Logistics', icon: '📋', color: 'text-gray-400 bg-gray-500/20', tier: 3 },
-    { key: 'method', label: 'Method', icon: '⚙️', color: 'text-gray-400 bg-gray-500/20', tier: 3 },
-    { key: 'observation', label: 'Observation', icon: '👁️', color: 'text-cyan-400 bg-cyan-500/20', tier: 3 },
-    { key: 'occasion', label: 'Occasion', icon: '🎪', color: 'text-pink-400 bg-pink-500/20', tier: 3 },
-    { key: 'pattern', label: 'Pattern', icon: '🔄', color: 'text-blue-400 bg-blue-500/20', tier: 3 },
-    { key: 'strategy', label: 'Strategy', icon: '🧠', color: 'text-blue-400 bg-blue-500/20', tier: 3 },
-    { key: 'surprise_element', label: 'Surprise Element', icon: '🎉', color: 'text-pink-400 bg-pink-500/20', tier: 3 },
-    { key: 'timing', label: 'Timing', icon: '⏱️', color: 'text-gray-400 bg-gray-500/20', tier: 3 },
-    { key: 'time', label: 'Time', icon: '🕐', color: 'text-gray-400 bg-gray-500/20', tier: 3 },
-    { key: 'trigger', label: 'Trigger', icon: '⚡', color: 'text-red-400 bg-red-500/20', tier: 3 },
-    { key: 'witnesses', label: 'Witnesses', icon: '👥', color: 'text-blue-400 bg-blue-500/20', tier: 3 },
-    { key: 'restaurants', label: 'Restaurants', icon: '🏪', color: 'text-orange-400 bg-orange-500/20', tier: 3 },
-    { key: 'response', label: 'Response', icon: '💬', color: 'text-blue-400 bg-blue-500/20', tier: 3 },
-    { key: 'role', label: 'Role', icon: '👤', color: 'text-blue-400 bg-blue-500/20', tier: 3 },
-    // Add flattened nested fields
-    { key: 'details_prisha_outfit', label: 'Outfit', icon: '👗', color: 'text-pink-400 bg-pink-500/20', tier: 3 },
-    { key: 'details_first_thoughts', label: 'First Thoughts', icon: '💭', color: 'text-blue-400 bg-blue-500/20', tier: 3 },
-    { key: 'details_activity', label: 'Detail Activity', icon: '🎬', color: 'text-green-400 bg-green-500/20', tier: 3 },
-    { key: 'details_aryan_had', label: 'Aryan Had', icon: '📝', color: 'text-orange-400 bg-orange-500/20', tier: 3 },
+    // Tier 3: Additional details
+    { key: 'weather', label: 'Weather', icon: '🌤️', color: 'bg-cyan-500/20 text-cyan-300' },
+    { key: 'duration', label: 'Duration', icon: '⏱️', color: 'bg-orange-500/20 text-orange-300' },
+    { key: 'cost', label: 'Cost', icon: '💰', color: 'bg-emerald-500/20 text-emerald-300' },
+    { key: 'follow_up', label: 'Follow-up', icon: '📋', color: 'bg-indigo-500/20 text-indigo-300' },
+    { key: 'reflection', label: 'Reflection', icon: '💭', color: 'bg-teal-500/20 text-teal-300' },
+    { key: 'lessons_learned', label: 'Lessons', icon: '🎓', color: 'bg-violet-500/20 text-violet-300' },
+    { key: 'related_memories', label: 'Related', icon: '🔗', color: 'bg-slate-500/20 text-slate-300' },
+    { key: 'future_plans', label: 'Future Plans', icon: '🚀', color: 'bg-rose-500/20 text-rose-300' }
   ];
 
-  const [loadedTiers, setLoadedTiers] = useState<Set<number>>(new Set([1])); // Start with tier 1 loaded
+  const [loadedTiers, setLoadedTiers] = useState(new Set([1]));
 
-  // Progressive loading of field tiers - from old code
+  // Progressive field loading
   useEffect(() => {
-    // Load tier 2 after a short delay
-    const timer2 = setTimeout(() => {
-      setLoadedTiers(prev => new Set([...prev, 2]));
-    }, 500);
-
-    // Load tier 3 after a longer delay
-    const timer3 = setTimeout(() => {
-      setLoadedTiers(prev => new Set([...prev, 3]));
-    }, 1500);
-
+    const timer1 = setTimeout(() => setLoadedTiers(prev => new Set([...prev, 2])), 300);
+    const timer2 = setTimeout(() => setLoadedTiers(prev => new Set([...prev, 3])), 600);
+    
     return () => {
+      clearTimeout(timer1);
       clearTimeout(timer2);
-      clearTimeout(timer3);
     };
   }, []);
 
-  // Filter to show all fields with values from loaded tiers
-  const fieldsToShow = allFieldConfigs.filter(config => {
-    const isLoaded = loadedTiers.has(config.tier);
-    const value = event[config.key];
-    const hasValue = value && value !== '' && (Array.isArray(value) ? value.length > 0 : true);
-    return isLoaded && hasValue;
+  // Filter fields based on loaded tiers and available data
+  const fieldsToShow = allFields.filter((field, index) => {
+    const tier = index < 3 ? 1 : index < 6 ? 2 : 3;
+    return loadedTiers.has(tier) && event[field.key];
   });
 
   if (fieldsToShow.length === 0) return null;
@@ -236,20 +186,15 @@ const AdditionalMemoryFields = React.memo(({ event }: { event: TimelineEvent }) 
         const value = event[config.key];
         const displayValue = Array.isArray(value) ? value.join(', ') : value;
         
-        // Moderate truncation - still readable but manageable
-        const truncatedValue = displayValue && displayValue.length > 150 
-          ? displayValue.substring(0, 150) + '...' 
-          : displayValue;
-        
         return (
           <div key={config.key} className="flex items-start space-x-2">
             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${config.color}`}>
               <span className="mr-1">{config.icon}</span>
               {config.label}
             </span>
-            <span className="text-white/70 text-xs flex-1 leading-relaxed">
-              {truncatedValue}
-            </span>
+            <div className="text-white/70 text-xs flex-1 leading-relaxed">
+              <ExpandableText text={displayValue} maxLength={150} />
+            </div>
           </div>
         );
       })}
@@ -283,7 +228,8 @@ function Timeline() {
     date: '',
     category: '',
     emotions: [] as string[],
-    isHighlight: false
+    isHighlight: false,
+    image: '' as string
   });
 
   // Mobile state - better detection from old code
@@ -303,6 +249,9 @@ function Timeline() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [filteredEvents, setFilteredEvents] = useState<TimelineEvent[]>([]);
+
+  // Image upload state
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // Intersection observer for infinite scroll - improved from old code
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -348,12 +297,12 @@ function Timeline() {
       setDisplayedEvents(result.events);
       setHasMorePages(result.hasMore);
       setCurrentPage(0);
-      setError(null);
-    } catch (error) {
+        setError(null);
+      } catch (error) {
       console.error('Error loading events:', error);
       setError('Failed to load timeline');
       showError('Error', 'Failed to load timeline events');
-    } finally {
+      } finally {
       setIsInitialLoading(false);
     }
   };
@@ -417,13 +366,52 @@ function Timeline() {
       date: '',
       category: '',
       emotions: [],
-      isHighlight: false
+      isHighlight: false,
+      image: ''
     });
     setShowModal(true);
   };
 
   const closeModal = () => {
     setShowModal(false);
+  };
+
+  // Image upload handler
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      showError('Invalid file', 'Please select an image file.');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      showError('File too large', 'Please select an image smaller than 5MB.');
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      // Convert to base64
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const base64 = e.target?.result as string;
+        setFormData(prev => ({ ...prev, image: base64 }));
+        setUploadingImage(false);
+      };
+      reader.onerror = () => {
+        showError('Upload failed', 'Failed to process the image.');
+        setUploadingImage(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      showError('Upload failed', 'Failed to upload the image.');
+      setUploadingImage(false);
+    }
   };
 
   const handleSave = async () => {
@@ -433,16 +421,23 @@ function Timeline() {
     }
 
     try {
-      const newEvent = await dataService.addTimelineEvent({
-        ...formData,
-        image: '' // We'll add image support later
-      });
-      setDisplayedEvents(prev => [newEvent, ...prev]);
-      showSuccess('Memory added!', 'Your new memory has been added to the timeline.');
+      const newEvent: Omit<TimelineEvent, 'id'> = {
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        date: formData.date,
+        category: formData.category,
+        emotions: formData.emotions,
+        isHighlight: formData.isHighlight,
+        image: formData.image || ''
+      };
+
+      const savedEvent = await dataService.addTimelineEvent(newEvent);
+      setDisplayedEvents(prev => [savedEvent, ...prev]);
       closeModal();
+      showSuccess('Memory saved!', 'Your new memory has been added to the timeline.');
     } catch (error) {
       console.error('Error saving event:', error);
-      showError('Save failed', 'Could not save your memory. Please try again.');
+      showError('Save failed', 'Failed to save your memory. Please try again.');
     }
   };
 
@@ -455,7 +450,8 @@ function Timeline() {
       date: event.date,
       category: event.category || '',
       emotions: event.emotions || [],
-      isHighlight: event.isHighlight || false
+      isHighlight: event.isHighlight || false,
+      image: event.image || ''
     });
     setShowEditModal(true);
   };
@@ -466,21 +462,31 @@ function Timeline() {
   };
 
   const handleEditSave = async () => {
-    if (!editingEvent || !formData.title.trim()) {
+    if (!formData.title.trim()) {
       showError('Title required', 'Please enter a title for your memory.');
       return;
     }
 
+    if (!editingEvent) return;
+
     try {
-      const updatedEvent = await dataService.updateTimelineEvent(editingEvent.id, formData);
-      setDisplayedEvents(prev => prev.map(event => 
-        event.id === editingEvent.id ? updatedEvent : event
-      ));
-      showSuccess('Memory updated!', 'Your memory has been updated successfully.');
+      const updatedData: Partial<TimelineEvent> = {
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        date: formData.date,
+        category: formData.category,
+        emotions: formData.emotions,
+        isHighlight: formData.isHighlight,
+        image: formData.image || ''
+      };
+
+      const updatedEvent = await dataService.updateTimelineEvent(editingEvent.id, updatedData);
+      setDisplayedEvents(prev => prev.map(e => e.id === editingEvent.id ? updatedEvent : e));
       closeEditModal();
+      showSuccess('Memory updated!', 'Your memory has been successfully updated.');
     } catch (error) {
       console.error('Error updating event:', error);
-      showError('Update failed', 'Could not update your memory. Please try again.');
+      showError('Update failed', 'Failed to update your memory. Please try again.');
     }
   };
 
@@ -511,7 +517,7 @@ function Timeline() {
     return () => document.removeEventListener('keydown', handleEscape);
   }, [showModal, showEditModal, showImageModal]);
 
-  // Timeline navigation with arrow keys
+  // Timeline navigation with arrow keys only
   useEffect(() => {
     const handleKeyNavigation = (e: KeyboardEvent) => {
       if (showModal || showEditModal || showImageModal) return;
@@ -526,13 +532,6 @@ function Timeline() {
         e.preventDefault();
         setActiveIndex(prev => Math.min(currentEvents.length - 1, prev + 1));
         scrollToEvent(Math.min(currentEvents.length - 1, activeIndex + 1));
-      } else if (e.key === 'Enter' && currentEvents[activeIndex]) {
-        e.preventDefault();
-        openEditModal(currentEvents[activeIndex]);
-      } else if (e.key === '/' && !showModal && !showEditModal && !showImageModal) {
-        e.preventDefault();
-        const searchInput = document.querySelector('input[placeholder="Search memories..."]') as HTMLInputElement;
-        searchInput?.focus();
       }
     };
 
@@ -575,7 +574,7 @@ function Timeline() {
       </div>
     );
   }
-
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 text-white">
       <div className="container mx-auto px-4 py-24">
@@ -585,7 +584,7 @@ function Timeline() {
             <div className="inline-flex items-center bg-white/10 rounded-full px-6 py-2 border border-white/10 mb-6">
               <Heart className="text-pink-400 mr-2" size={18} />
               <span className="text-base font-medium">Aryan & Prisha's Journey</span>
-            </div>
+      </div>
             
             <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
               Timeline of Love
@@ -625,7 +624,7 @@ function Timeline() {
               <div className="flex-1">
                 <input
                   type="text"
-                  placeholder="Search memories... (Press / to focus)"
+                  placeholder="Search memories..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full p-3 bg-white/5 border border-white/10 rounded-lg focus:border-purple-500 transition-colors text-white placeholder-gray-400"
@@ -666,11 +665,11 @@ function Timeline() {
           {displayedEvents.length > 0 && !isMobile && (
             <div className="mb-4 text-center">
               <div className="inline-flex items-center bg-white/5 rounded-lg px-4 py-2 border border-white/10 text-xs text-gray-400">
-                <span>💡 Use arrow keys to navigate • Enter to edit • / to search</span>
+                <span>💡 Use arrow keys to navigate</span>
               </div>
             </div>
           )}
-
+                    
           {/* Content */}
           {displayedEvents.length === 0 ? (
             <div className="text-center py-20">
@@ -678,13 +677,13 @@ function Timeline() {
                 <Calendar size={64} className="mx-auto mb-6 text-purple-400" />
                 <h3 className="text-2xl font-bold mb-4">No Memories Yet</h3>
                 <p className="text-gray-300 mb-6">Start your timeline by adding the first memory!</p>
-                <button 
+                      <button 
                   onClick={openAddModal}
                   className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-all duration-300"
-                >
+                      >
                   <Plus size={20} className="mr-2 inline" />
                   Add First Memory
-                </button>
+                      </button>
               </div>
             </div>
           ) : (
@@ -697,7 +696,7 @@ function Timeline() {
                     <p className="text-gray-300 mb-6">
                       No memories found matching your search criteria. Try adjusting your filters.
                     </p>
-                    <button
+                      <button 
                       onClick={() => {
                         setSearchTerm('');
                         setSelectedCategory('');
@@ -705,8 +704,8 @@ function Timeline() {
                       className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-all duration-300"
                     >
                       Clear Filters
-                    </button>
-                  </div>
+                      </button>
+                    </div>
                 </div>
               ) : (
                 <>
@@ -739,7 +738,7 @@ function Timeline() {
                               {event.category && (
                                 <div className="text-blue-300 text-xs uppercase tracking-wide">
                                   {event.category.replace('_', ' ')}
-                                </div>
+                    </div>
                               )}
                               
                               <div className="text-purple-300 text-sm">
@@ -748,8 +747,8 @@ function Timeline() {
                                   month: 'long', 
                                   day: 'numeric' 
                                 }) : 'Date unknown'}
-                              </div>
-                              
+                  </div>
+                  
                               <h3 className="text-xl font-bold text-white leading-tight">
                                 {event.title}
                               </h3>
@@ -760,8 +759,8 @@ function Timeline() {
                                     <span key={i} className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded-full">
                                       {emotion}
                                     </span>
-                                  ))}
-                                </div>
+                    ))}
+                  </div>
                               )}
                               
                               <div className="mb-4">
@@ -775,19 +774,19 @@ function Timeline() {
                               />
                               
                               <div className="flex justify-end pt-2">
-                                <button
+                  <button 
                                   onClick={() => openEditModal(event)}
                                   className="inline-flex items-center px-2 py-1 bg-white/10 rounded-lg hover:bg-white/20 transition-colors text-xs"
-                                >
+                  >
                                   <Edit size={14} className="mr-1" />
                                   Edit
-                                </button>
-                              </div>
-                            </div>
-                          </div>
+                  </button>
+                </div>
+              </div>
+              </div>
                         </motion.div>
                       ))}
-                    </div>
+          </div>
                   ) : (
                     (searchTerm || selectedCategory ? filteredEvents : displayedEvents).map((event, index) => (
                       <motion.div 
@@ -813,7 +812,7 @@ function Timeline() {
                             <div className="w-0.5 h-24 bg-gradient-to-b from-purple-500 to-pink-500 mt-2" />
                           )}
                         </div>
-
+                        
                         {/* Event content */}
                         <div className="flex-1 pb-6">
                           <div className={`rounded-xl border transition-all duration-300 shadow-lg relative hover:scale-105 overflow-hidden ${
@@ -863,8 +862,8 @@ function Timeline() {
                                         {emotion}
                                       </span>
                                     ))}
-                                  </div>
-                                )}
+                            </div>
+                          )}
                                 
                                 <div className="mb-3">
                                   <ExpandableText text={event.description} maxLength={200} />
@@ -881,8 +880,8 @@ function Timeline() {
                                     Edit Memory
                                   </button>
                                 </div>
-                              </div>
-                              
+                        </div>
+                        
                               {/* Right side - Image (properly centered) */}
                               <div className="lg:w-80 lg:p-6 lg:flex lg:items-center lg:justify-center">
                                 <TimelineImage 
@@ -1013,6 +1012,41 @@ function Timeline() {
                   placeholder="happy, excited, nostalgic..."
                 />
               </div>
+
+              {/* Image Upload */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Image</label>
+                <div className="space-y-3">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    disabled={uploadingImage}
+                    className="w-full p-3 bg-white/5 border border-white/10 rounded-lg focus:border-purple-500 transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-purple-600 file:text-white hover:file:bg-purple-700"
+                  />
+                  {uploadingImage && (
+                    <div className="flex items-center space-x-2 text-sm text-gray-400">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-500"></div>
+                      <span>Uploading image...</span>
+                    </div>
+                  )}
+                  {formData.image && !uploadingImage && (
+                    <div className="relative">
+                      <img
+                        src={formData.image}
+                        alt="Preview"
+                        className="w-full h-32 object-cover rounded-lg"
+                      />
+                      <button
+                        onClick={() => setFormData(prev => ({ ...prev, image: '' }))}
+                        className="absolute top-2 right-2 p-1 bg-red-600 rounded-full hover:bg-red-700 transition-colors"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
               
               <div className="flex items-center">
                 <input
@@ -1037,7 +1071,8 @@ function Timeline() {
               </button>
               <button
                 onClick={handleSave}
-                className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300 flex items-center justify-center"
+                disabled={uploadingImage}
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Save size={16} className="mr-2" />
                 Save
@@ -1125,16 +1160,51 @@ function Timeline() {
                   placeholder="happy, excited, nostalgic..."
                 />
               </div>
+
+              {/* Image Upload */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Image</label>
+                <div className="space-y-3">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    disabled={uploadingImage}
+                    className="w-full p-3 bg-white/5 border border-white/10 rounded-lg focus:border-purple-500 transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-purple-600 file:text-white hover:file:bg-purple-700"
+                  />
+                  {uploadingImage && (
+                    <div className="flex items-center space-x-2 text-sm text-gray-400">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-500"></div>
+                      <span>Uploading image...</span>
+                    </div>
+                  )}
+                  {formData.image && !uploadingImage && (
+                    <div className="relative">
+                      <img
+                        src={formData.image}
+                        alt="Preview"
+                        className="w-full h-32 object-cover rounded-lg"
+                      />
+                      <button
+                        onClick={() => setFormData(prev => ({ ...prev, image: '' }))}
+                        className="absolute top-2 right-2 p-1 bg-red-600 rounded-full hover:bg-red-700 transition-colors"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
               
               <div className="flex items-center">
                 <input
                   type="checkbox"
-                  id="highlight"
+                  id="editHighlight"
                   checked={formData.isHighlight}
                   onChange={(e) => setFormData(prev => ({ ...prev, isHighlight: e.target.checked }))}
                   className="mr-3 w-4 h-4"
                 />
-                <label htmlFor="highlight" className="text-sm font-medium">
+                <label htmlFor="editHighlight" className="text-sm font-medium">
                   ✨ Special highlight
                 </label>
               </div>
@@ -1149,7 +1219,8 @@ function Timeline() {
               </button>
               <button
                 onClick={handleEditSave}
-                className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300 flex items-center justify-center"
+                disabled={uploadingImage}
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Save size={16} className="mr-2" />
                 Save
@@ -1181,7 +1252,7 @@ function Timeline() {
               />
             </div>
           </div>
-        </div>
+      </div>
       )}
     </div>
   );
