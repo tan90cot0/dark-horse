@@ -45,11 +45,45 @@ const TimelineImage = React.memo(({
     if (shouldLoad && !imageData && !isLoading && !hasError) {
       loadImage();
     }
-  }, [shouldLoad, imageData, isLoading, hasError]);
+  }, [shouldLoad, imageData, isLoading, hasError, event.image]);
+
+  // Reset image state when event.image changes (important for localStorage events)
+  useEffect(() => {
+    if (event.image && event.image !== 'placeholder' && event.image !== '' && event.image !== imageData) {
+      setImageData('');
+      setHasError(false);
+      setIsLoading(false);
+      // Force immediate reload for localStorage events with image data
+      if (event.image.startsWith('data:image/') || event.image.startsWith('/9j/') || event.image.startsWith('iVBOR')) {
+        let formattedImageData = event.image;
+        if (!formattedImageData.startsWith('data:image/')) {
+          formattedImageData = `data:image/jpeg;base64,${formattedImageData}`;
+        }
+        setImageData(formattedImageData);
+      }
+    }
+  }, [event.image, imageData]);
 
   const loadImage = async () => {
     setIsLoading(true);
     try {
+      // Check if image data is already available in the event (localStorage events)
+      if (event.image && event.image !== 'placeholder' && event.image !== '') {
+        console.log(`Using stored image data for event ${event.id}: "${event.title}"`);
+        let imageData = event.image;
+        
+        // Ensure proper data URL format
+        if (!imageData.startsWith('data:image/') && (imageData.startsWith('/9j/') || imageData.startsWith('iVBOR'))) {
+          imageData = `data:image/jpeg;base64,${imageData}`;
+        }
+        
+        setImageData(imageData);
+        setIsLoading(false);
+        return;
+      }
+      
+      // Fallback to loading from JSON files (for original timeline events)
+      console.log(`Loading image from JSON files for event ${event.id}: "${event.title}"`);
       const image = await dataService.loadImageForEvent(event);
       if (image) {
         setImageData(image);
