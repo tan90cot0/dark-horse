@@ -1,0 +1,479 @@
+{
+  "image_metadata": {
+    "total_images": 58,
+    "note": "Updated to match user's extracted image IDs",
+    "extraction_date": "2025-06-07",
+    "instructions": "Image IDs now match the user's extracted OCR data"
+  },
+  "image_references": [
+    {
+      "image_id": "2",
+      "filename": "media/image2.png",
+      "associated_memory_id": 1,
+      "memory_title": "The Beginning - JEE Advanced",
+      "description": "JEE Advanced question that changed their fate",
+      "context": "The electrostatics question that led to them being together"
+    },
+    {
+      "image_id": "3",
+      "filename": "media/image3.jpg",
+      "associated_memory_id": 2,
+      "memory_title": "The Day It Actually Started (1)",
+      "description": "Related to first Instagram contact",
+      "context": "December 12, 2020 - first text exchange"
+    },
+    {
+      "image_id": "4",
+      "filename": "media/image4.jpg",
+      "associated_memory_id": 3,
+      "memory_title": "The Day It Actually Started (2)",
+      "description": "Screenshot of conversation",
+      "context": "March 4, 2021 - chosen anniversary date conversation"
+    },
+    {
+      "image_id": "4",
+      "filename": "media/image5.jpg",
+      "associated_memory_id": 3,
+      "memory_title": "The Day It Actually Started (2)",
+      "description": "Screenshot of conversation continued",
+      "context": "March 4, 2021 - 'hey prissssy will u be my missy' conversation"
+    },
+    {
+      "image_id": "5",
+      "filename": "media/image6.jpg",
+      "associated_memory_id": 4,
+      "memory_title": "The Day It Actually Started (3)",
+      "description": "Screenshot of chat",
+      "context": "March 7, 2021 - silent video calls conversation"
+    },
+    {
+      "image_id": "5",
+      "filename": "media/image7.jpg",
+      "associated_memory_id": 4,
+      "memory_title": "The Day It Actually Started (3)",
+      "description": "Screenshot of chat continued",
+      "context": "March 7, 2021 - 'too much crush on Prisha' conversation"
+    },
+    {
+      "image_id": "6",
+      "filename": "media/image8.jpg",
+      "associated_memory_id": 5,
+      "memory_title": "First Fight, First I Love You",
+      "description": "Telegram saved message",
+      "context": "May 28, 2021 - first 'I love u' from Aryan"
+    },
+    {
+      "image_id": "7",
+      "filename": "media/image9.jpg",
+      "associated_memory_id": 6,
+      "memory_title": "Another Fight, Another I Love You",
+      "description": "Chat screenshot",
+      "context": "July 12, 2021 - first 'I love you' from Prisha"
+    },
+    {
+      "image_id": "8",
+      "filename": "media/image10.jpg",
+      "associated_memory_id": 7,
+      "memory_title": "The First Offline Real Meet",
+      "description": "Flight search or related image",
+      "context": "August 16, 2021 - Prisha's intuition about Aryan coming to Delhi"
+    },
+    {
+      "image_id": "8",
+      "filename": "media/image11.jpg",
+      "associated_memory_id": 7,
+      "memory_title": "The First Offline Real Meet",
+      "description": "First ever photo together",
+      "context": "August 16, 2021 - their very first in-person photo"
+    },
+    {
+      "image_id": "9",
+      "filename": "media/image12.jpeg",
+      "associated_memory_id": 8,
+      "memory_title": "Our First Date",
+      "description": "Iconic photo near Hauz Khas metro station",
+      "context": "August 17, 2021 - first date photo"
+    },
+    {
+      "image_id": "9",
+      "filename": "media/image13.jpeg",
+      "associated_memory_id": 8,
+      "memory_title": "Our First Date",
+      "description": "Photo sitting against tree on hilltop",
+      "context": "August 17, 2021 - hilltop near back of Kailash"
+    },
+    {
+      "image_id": "10",
+      "filename": "media/image14.jpg",
+      "associated_memory_id": 9,
+      "memory_title": "My First Birthday with You (Virtual)",
+      "description": "Screenshot of Prisha brushing teeth",
+      "context": "October 5, 2021 - virtual birthday celebration"
+    },
+    {
+      "image_id": "11",
+      "filename": "media/image15.jpg",
+      "associated_memory_id": 10,
+      "memory_title": "Our First Date Night",
+      "description": "Photo at Cyberhub with steel tables and artificial grass",
+      "context": "November 22, 2021 - first date night after majors"
+    },
+    {
+      "image_id": "13",
+      "filename": "media/image16.jpg",
+      "associated_memory_id": 11,
+      "memory_title": "First Photoshoot",
+      "description": "Cute photo from photoshoot",
+      "context": "January 1, 2022 - photoshoot near Zanskar swing before departure"
+    },
+    {
+      "image_id": "14",
+      "filename": "media/image17.jpeg",
+      "associated_memory_id": 12,
+      "memory_title": "Bye Delhi, Hello Pune",
+      "description": "Photo of Prisha crying",
+      "context": "January 1, 2022 - emotional departure"
+    },
+    {
+      "image_id": "14",
+      "filename": "media/image18.jpeg",
+      "associated_memory_id": 12,
+      "memory_title": "Bye Delhi, Hello Pune",
+      "description": "Another crying photo",
+      "context": "January 1, 2022 - first separation after being on campus"
+    },
+    {
+      "image_id": "14",
+      "filename": "media/image19.jpeg",
+      "associated_memory_id": 12,
+      "memory_title": "Bye Delhi, Hello Pune",
+      "description": "Phone screenshot",
+      "context": "January 1, 2022 - related to COVID transmission incident"
+    },
+    {
+      "image_id": "15",
+      "filename": "media/image20.jpeg",
+      "associated_memory_id": 13,
+      "memory_title": "First Anniversary!",
+      "description": "Photo from airport or coming back",
+      "context": "March 4, 2022 - first anniversary celebration"
+    },
+    {
+      "image_id": "16",
+      "filename": "media/image21.png",
+      "associated_memory_id": 14,
+      "memory_title": "When Aaru took me to AIIMS",
+      "description": "Detailed message about hospital visit",
+      "context": "March 8, 2022 - Aryan took care of Prisha when she was hurt"
+    },
+    {
+      "image_id": "17",
+      "filename": "media/image22.jpg",
+      "associated_memory_id": 15,
+      "memory_title": "First Time You Came Home",
+      "description": "Photo at Prisha's home",
+      "context": "March 9, 2022 - Aryan's first visit to Prisha's house"
+    },
+    {
+      "image_id": "17",
+      "filename": "media/image23.jpg",
+      "associated_memory_id": 15,
+      "memory_title": "First Time You Came Home",
+      "description": "Another photo at home",
+      "context": "March 9, 2022 - with chocolates and flowers"
+    },
+    {
+      "image_id": "19",
+      "filename": "media/image24.jpg",
+      "associated_memory_id": 16,
+      "memory_title": "Cyberhub Date",
+      "description": "Photo at Cyberhub",
+      "context": "March 15, 2022 - delayed Cyberhub date due to injury"
+    },
+    {
+      "image_id": "20",
+      "filename": "media/image25.jpg",
+      "associated_memory_id": 17,
+      "memory_title": "First Festival Together: Holi",
+      "description": "Holi celebration photo",
+      "context": "March 18, 2022 - first festival together"
+    },
+    {
+      "image_id": "21",
+      "filename": "media/image26.jpg",
+      "associated_memory_id": 18,
+      "memory_title": "Happy Birthday Aaru!!",
+      "description": "Birthday celebration photo",
+      "context": "March 25, 2022 - Aryan's first birthday offline with Prisha"
+    },
+    {
+      "image_id": "23",
+      "filename": "media/image27.png",
+      "associated_memory_id": 19,
+      "memory_title": "Dance at RDV with Aaru",
+      "description": "Dancing photo at Sunidhi Chauhan's concert",
+      "context": "April 29, 2022 - first dance together"
+    },
+    {
+      "image_id": "24",
+      "filename": "media/image28.png",
+      "associated_memory_id": 20,
+      "memory_title": "Your Internship Offer!!",
+      "description": "Internship related communication",
+      "context": "May 3, 2022 - both got Germany internships"
+    },
+    {
+      "image_id": "25",
+      "filename": "media/image29.jpg",
+      "associated_memory_id": 21,
+      "memory_title": "First Hotel",
+      "description": "Hotel photo",
+      "context": "May 18, 2022 - first hotel stay together"
+    },
+    {
+      "image_id": "26",
+      "filename": "media/image30.png",
+      "associated_memory_id": 22,
+      "memory_title": "Becoming Your Family",
+      "description": "Screenshot of 'Gn family❤️' message",
+      "context": "May 22, 2022 - being called family"
+    },
+    {
+      "image_id": "26",
+      "filename": "media/image31.jpg",
+      "associated_memory_id": 22,
+      "memory_title": "Becoming Your Family",
+      "description": "Family photo with Prisha included",
+      "context": "May 22, 2022 - included in family picture"
+    },
+    {
+      "image_id": "28",
+      "filename": "media/image32.jpeg",
+      "associated_memory_id": 23,
+      "memory_title": "First International Trip Together",
+      "description": "Photo in Berlin",
+      "context": "June 17, 2022 - first trip together in Berlin"
+    },
+    {
+      "image_id": "28",
+      "filename": "media/image33.jpeg",
+      "associated_memory_id": 23,
+      "memory_title": "First International Trip Together",
+      "description": "Famous 'pattagobhi' photo",
+      "context": "June 17, 2022 - Berlin trip with memorable quote"
+    },
+    {
+      "image_id": "29",
+      "filename": "media/image34.jpg",
+      "associated_memory_id": 24,
+      "memory_title": "The Last One in Germany (1)",
+      "description": "Parting at Munich railway station",
+      "context": "July 18, 2022 - saying goodbye after Germany trip"
+    },
+    {
+      "image_id": "30",
+      "filename": "media/image35.jpg",
+      "associated_memory_id": 25,
+      "memory_title": "The Last One in Germany (2)",
+      "description": "Photo from dramatic 3am visit in Gottingen",
+      "context": "July 26, 2022 - reconciliation visit"
+    },
+    {
+      "image_id": "32",
+      "filename": "media/image36.jpg",
+      "associated_memory_id": 26,
+      "memory_title": "First Barbeque",
+      "description": "Photo at expensive restaurant with ice cream",
+      "context": "September 11, 2022 - celebration for Ripik internship"
+    },
+    {
+      "image_id": "33",
+      "filename": "media/image37.jpg",
+      "associated_memory_id": 27,
+      "memory_title": "Proposal ❤️",
+      "description": "iPad drawing of rose for proposal",
+      "context": "November 17, 2022 - formal proposal"
+    },
+    {
+      "image_id": "35",
+      "filename": "media/image38.jpg",
+      "associated_memory_id": 28,
+      "memory_title": "Rose Day 🌹",
+      "description": "Photo with first rose",
+      "context": "December 4, 2022 - first rose given"
+    },
+    {
+      "image_id": "36",
+      "filename": "media/image39.jpg",
+      "associated_memory_id": 29,
+      "memory_title": "Murthal",
+      "description": "Photo from Murthal trip",
+      "context": "December 5, 2022 - first trip outside Delhi"
+    },
+    {
+      "image_id": "37",
+      "filename": "media/image40.jpg",
+      "associated_memory_id": 30,
+      "memory_title": "Manali Trip",
+      "description": "New Year photo from Manali",
+      "context": "January 1, 2023 - first college trip together"
+    },
+    {
+      "image_id": "38",
+      "filename": "media/image41.jpg",
+      "associated_memory_id": 31,
+      "memory_title": "My Billu ❤️❤️",
+      "description": "Photo with stuffed cat Billu",
+      "context": "February 18, 2023 - best gift ever received"
+    },
+    {
+      "image_id": "40",
+      "filename": "media/image42.jpg",
+      "associated_memory_id": 32,
+      "memory_title": "32nd Avenue: Valentine's Edition ❤️",
+      "description": "Valentine's celebration photo at 32nd Avenue",
+      "context": "February 18, 2023 - delayed valentine's celebration"
+    },
+    {
+      "image_id": "41",
+      "filename": "media/image43.jpeg",
+      "associated_memory_id": 33,
+      "memory_title": "Cooking Together for the First Time",
+      "description": "Burned pizza attempt",
+      "context": "February 25, 2023 - first cooking disaster at AirBnB"
+    },
+    {
+      "image_id": "41",
+      "filename": "media/image44.jpeg",
+      "associated_memory_id": 33,
+      "memory_title": "Cooking Together for the First Time",
+      "description": "Successful bhelpuri",
+      "context": "February 25, 2023 - backup cooking success"
+    },
+    {
+      "image_id": "43",
+      "filename": "media/image45.jpg",
+      "associated_memory_id": 34,
+      "memory_title": "Kaizen with You",
+      "description": "Quizzing event photo",
+      "context": "April 1, 2023 - conducting event together"
+    },
+    {
+      "image_id": "44",
+      "filename": "media/image46.jpg",
+      "associated_memory_id": 35,
+      "memory_title": "First Cream Stone Ice-cream",
+      "description": "Mixed ice cream at Creamstone",
+      "context": "April 21, 2023 - trying mixed ice cream for first time"
+    },
+    {
+      "image_id": "45",
+      "filename": "media/image47.jpg",
+      "associated_memory_id": 36,
+      "memory_title": "Bangalore Surprise!",
+      "description": "Surprise meeting in Bangalore mall",
+      "context": "June 26, 2023 - Aryan's surprise visit pretending to be Smrati"
+    },
+    {
+      "image_id": "46",
+      "filename": "media/image48.jpg",
+      "associated_memory_id": 37,
+      "memory_title": "A Cute Evening in Bangalore",
+      "description": "Prisha resting peacefully in Aryan's arms",
+      "context": "July 13, 2023 - reconciliation in Bangalore"
+    },
+    {
+      "image_id": "47",
+      "filename": "media/image49.jpg",
+      "associated_memory_id": 38,
+      "memory_title": "Everything I Do, I Do It for You",
+      "description": "Written song lyrics dedication",
+      "context": "July 17, 2023 - song dedicated during fight"
+    },
+    {
+      "image_id": "49",
+      "filename": "media/image50.jpg",
+      "associated_memory_id": 40,
+      "memory_title": "First Starbucks Date",
+      "description": "Photo at Starbucks",
+      "context": "September 24, 2023 - first Starbucks experience together"
+    },
+    {
+      "image_id": "50",
+      "filename": "media/image51.jpg",
+      "associated_memory_id": 41,
+      "memory_title": "Darkest Day (1)",
+      "description": "Aryan showing swimming goggles innocently",
+      "context": "October 14, 2023 - before swimming accident"
+    },
+    {
+      "image_id": "52",
+      "filename": "media/image52.jpeg",
+      "associated_memory_id": 43,
+      "memory_title": "Darkest Day (3) and More",
+      "description": "Aryan pretending steam machine is on",
+      "context": "October 16, 2023 - during hospital stay"
+    },
+    {
+      "image_id": "54",
+      "filename": "media/image52.jpeg",
+      "associated_memory_id": 43,
+      "memory_title": "Darkest Day (3) and More",
+      "description": "Additional hospital photo",
+      "context": "October 16, 2023 - ICU period"
+    },
+    {
+      "image_id": "55",
+      "filename": "media/image53.jpg",
+      "associated_memory_id": 44,
+      "memory_title": "The Day You Came Back",
+      "description": "Airport pickup after recovery",
+      "context": "October 30, 2023 - emotional reunion after 16 days"
+    },
+    {
+      "image_id": "56",
+      "filename": "media/image54.jpeg",
+      "associated_memory_id": 45,
+      "memory_title": "The Hotel After You Came Back",
+      "description": "Gifts and celebration photo",
+      "context": "November 27, 2023 - post-recovery celebration at Park Inn"
+    },
+    {
+      "image_id": "56",
+      "filename": "media/image55.jpeg",
+      "associated_memory_id": 45,
+      "memory_title": "The Hotel After You Came Back",
+      "description": "Bouquet of red roses",
+      "context": "November 27, 2023 - everlasting and fresh love symbolism"
+    },
+    {
+      "image_id": "60",
+      "filename": "media/image56.jpg",
+      "associated_memory_id": "thank_you_section",
+      "memory_title": "Thank You Section",
+      "description": "Photo related to gratitude section",
+      "context": "Gratitude and appreciation photos"
+    },
+    {
+      "image_id": "60",
+      "filename": "media/image57.jpg",
+      "associated_memory_id": "thank_you_section",
+      "memory_title": "Thank You Section",
+      "description": "Another gratitude photo",
+      "context": "Appreciation for all moments together"
+    },
+    {
+      "image_id": "61",
+      "filename": "media/image58.jpg",
+      "associated_memory_id": "song_dedication",
+      "memory_title": "Song Dedication",
+      "description": "Final photo for 22nd birthday wishes",
+      "context": "Song dedication and birthday wishes"
+    }
+  ],
+  "mapping_notes": {
+    "updated_for": "User's extracted OCR image IDs",
+    "total_mapped_images": 58,
+    "id_system": "Uses user's extracted diary entry IDs instead of sequential numbering"
+  }
+}

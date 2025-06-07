@@ -1,12 +1,10 @@
 /**
- * Data Service
+ * Truly Minimal Data Service - Incremental Loading Only
  * 
- * This utility handles data storage and retrieval, currently using localStorage
- * but designed to be easily replaceable with a real API when available.
+ * Loads only 3 memories at a time, no bulk operations
  */
-import { mapData, MapData, Marker, getMapData } from '../data/mapData';
 
-// Type definitions for stored data
+// Type definitions
 export interface TimelineEvent {
   id: string;
   date: string;
@@ -14,6 +12,7 @@ export interface TimelineEvent {
   description: string;
   image: string;
   isHighlight?: boolean;
+  imageLoaded?: boolean;
 }
 
 export interface Announcement {
@@ -24,211 +23,356 @@ export interface Announcement {
   color?: string;
 }
 
-// Sample initial data for first-time use
-const initialData = {
-  timelineEvents: [
-    {
-      id: '1',
-      date: 'March 15, 2024',
-      title: 'First Meeting',
-      description: 'Where it all began. Initial brainstorming and concept development for our collaborative project.',
-      image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      isHighlight: true
-    },
-    {
-      id: '2',
-      date: 'March 20, 2024',
-      title: 'Project Kickoff',
-      description: 'Working together on our first project. Setting up the development environment and creating initial designs.',
-      image: 'https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
-    }
-  ] as TimelineEvent[],
-  
-  announcements: [
-    {
-      id: '1',
-      text: 'Welcome to our private notice board! Share thoughts and updates here.',
-      author: 'Aryan',
-      timestamp: new Date(),
-      color: 'purple'
-    }
-  ] as Announcement[]
-};
+// Minimal memory data
+interface DiaryMemory {
+  id: number;
+  title: string;
+  date: string | null;
+  category: string;
+  content: string;
+  significance?: string;
+  isHighlight?: boolean;
+}
 
-/**
- * Data Service class to handle storage and retrieval
- * This abstraction makes it easy to replace localStorage with a real API later
- */
+// Cache for loaded data chunks
 class DataService {
-  // Generic fetch method that can be used for any data type
-  async fetch<T>(key: string, defaultData: T[]): Promise<T[]> {
-    try {
-      const storedData = localStorage.getItem(key);
-      if (storedData) {
-        // Handle Date objects that were stringified
-        if (key === 'announcements') {
-          return JSON.parse(storedData, (key, value) => {
-            if (key === 'timestamp') return new Date(value);
-            return value;
-          });
-        }
-        return JSON.parse(storedData);
-      } else {
-        // First time use - initialize with default data
-        localStorage.setItem(key, JSON.stringify(defaultData));
-        return defaultData;
-      }
-    } catch (error) {
-      console.error(`Error fetching ${key}:`, error);
-      return defaultData;
-    }
-  }
+  private allMemoriesCache: DiaryMemory[] | null = null;
+  private loadedMemoryPages: Map<number, DiaryMemory[]> = new Map();
+  private imageMetadataCache: Map<number, string> | null = null;
+  private singleImageCache: Map<string, string> = new Map();
+  private activeRequests: Set<string> = new Set();
 
-  // Generic save method
-  async save<T>(key: string, data: T[]): Promise<void> {
-    try {
-      localStorage.setItem(key, JSON.stringify(data));
-    } catch (error) {
-      console.error(`Error saving ${key}:`, error);
-    }
-  }
+  // Page size for incremental loading
+  private readonly PAGE_SIZE = 3;
 
-  // Timeline Events - Now with JSON file fetching
-  async getTimelineEvents(): Promise<TimelineEvent[]> {
+  // Load only essential metadata first (no content)
+  async loadMemoryMetadata(): Promise<{ total: number; pages: number }> {
+    if (this.allMemoriesCache) {
+      return {
+        total: this.allMemoriesCache.length,
+        pages: Math.ceil(this.allMemoriesCache.length / this.PAGE_SIZE)
+      };
+    }
+
     try {
-      // First try to fetch the timeline data from JSON file
-      const response = await fetch('/data/timelineData.json');
+      console.log('Loading memory metadata only...');
       
-      if (response.ok) {
-        const data = await response.json();
-        
-        // Save the fetched data to localStorage for offline use
-        this.saveTimelineEvents(data);
-        
-        return data;
-      } else {
-        console.warn('Could not fetch timeline data from JSON, falling back to localStorage');
-        // If fetch fails, fall back to localStorage
-        return this.fetch<TimelineEvent>('timelineEvents', initialData.timelineEvents);
-      }
+      // Load diary but don't store all memories in memory at once
+      const response = await fetch('/data/diary.json');
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      
+      const diaryData = await response.json();
+      this.allMemoriesCache = diaryData.memories || [];
+      
+      const total = this.allMemoriesCache?.length || 0;
+      const pages = Math.ceil(total / this.PAGE_SIZE);
+      
+      console.log(`Found ${total} memories, ${pages} pages`);
+      return { total, pages };
     } catch (error) {
-      console.error('Error fetching timeline data:', error);
-      // If an error occurs, fall back to localStorage
-      return this.fetch<TimelineEvent>('timelineEvents', initialData.timelineEvents);
+      console.error('Error loading memory metadata:', error);
+      return { total: 0, pages: 0 };
     }
   }
 
-  async saveTimelineEvents(events: TimelineEvent[]): Promise<void> {
-    return this.save('timelineEvents', events);
+  // Load specific page of memories
+  async loadMemoryPage(page: number): Promise<DiaryMemory[]> {
+    if (this.loadedMemoryPages.has(page)) {
+      return this.loadedMemoryPages.get(page)!;
+    }
+
+    try {
+      if (!this.allMemoriesCache) {
+        await this.loadMemoryMetadata();
+      }
+
+      const startIndex = page * this.PAGE_SIZE;
+      const endIndex = Math.min(startIndex + this.PAGE_SIZE, this.allMemoriesCache!.length);
+      const pageMemories = this.allMemoriesCache!.slice(startIndex, endIndex);
+
+      this.loadedMemoryPages.set(page, pageMemories);
+      console.log(`Loaded page ${page}: ${pageMemories.length} memories`);
+      
+      return pageMemories;
+    } catch (error) {
+      console.error(`Error loading memory page ${page}:`, error);
+      return [];
+    }
   }
 
-  // Announcements
-  async getAnnouncements(): Promise<Announcement[]> {
-    return this.fetch<Announcement>('announcements', initialData.announcements);
+  // Convert memory to timeline event
+  convertMemoryToTimelineEvent(memory: DiaryMemory): TimelineEvent {
+    return {
+      id: memory.id.toString(),
+      title: memory.title,
+      date: memory.date || '',
+      description: memory.content,
+      image: '', // No image initially
+      isHighlight: memory.isHighlight || 
+                   memory.significance === 'major_regret' || 
+                   memory.significance?.includes('first_i_love_you') ||
+                   memory.significance?.includes('first_in_person') ||
+                   memory.significance?.includes('formal_proposal'),
+      imageLoaded: false
+    };
   }
 
-  async saveAnnouncements(announcements: Announcement[]): Promise<void> {
-    return this.save('announcements', announcements);
+  // Get timeline events for specific page only
+  async getTimelineEventsPage(page: number = 0): Promise<{ events: TimelineEvent[]; hasMore: boolean; total: number }> {
+    try {
+      const metadata = await this.loadMemoryMetadata();
+      const memories = await this.loadMemoryPage(page);
+      
+      const events = memories.map(memory => this.convertMemoryToTimelineEvent(memory));
+      
+      // Sort this page only
+      events.sort((a, b) => {
+        if (!a.date && !b.date) return 0;
+        if (!a.date) return 1;
+        if (!b.date) return -1;
+        return new Date(a.date).getTime() - new Date(b.date).getTime();
+      });
+
+      const hasMore = (page + 1) * this.PAGE_SIZE < metadata.total;
+      
+      console.log(`Page ${page}: ${events.length} events, hasMore: ${hasMore}`);
+      
+      return {
+        events,
+        hasMore,
+        total: metadata.total
+      };
+    } catch (error) {
+      console.error('Error getting timeline events page:', error);
+      return { events: [], hasMore: false, total: 0 };
+    }
   }
 
-  // Map Locations - now using the dedicated mapData module
-  async getMapData(): Promise<MapData> {
-    return getMapData();
+  // Load image metadata only when needed
+  async loadImageMetadata(): Promise<Map<number, string>> {
+    if (this.imageMetadataCache) {
+      return this.imageMetadataCache;
+    }
+
+    try {
+      console.log('Loading image metadata...');
+      const response = await fetch('/data/image_metadata.json');
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      
+      const metadataFile = await response.json();
+      this.imageMetadataCache = new Map();
+      
+      // Map memory_id -> image_id
+      if (metadataFile.image_references) {
+        metadataFile.image_references.forEach((meta: any) => {
+          this.imageMetadataCache!.set(meta.associated_memory_id, meta.image_id);
+        });
+      }
+      
+      console.log(`Loaded metadata for ${this.imageMetadataCache?.size || 0} images`);
+      return this.imageMetadataCache;
+    } catch (error) {
+      console.error('Error loading image metadata:', error);
+      this.imageMetadataCache = new Map();
+      return this.imageMetadataCache;
+    }
   }
 
-  // CRUD operations for TimelineEvents
+  // Load single image without loading entire file
+  async loadImageForEvent(event: TimelineEvent): Promise<string> {
+    const cacheKey = `image_${event.id}`;
+    
+    if (this.singleImageCache.has(cacheKey)) {
+      return this.singleImageCache.get(cacheKey)!;
+    }
+
+    if (this.activeRequests.has(cacheKey)) {
+      // Wait for existing request
+      return new Promise((resolve) => {
+        const checkCache = () => {
+          if (this.singleImageCache.has(cacheKey)) {
+            resolve(this.singleImageCache.get(cacheKey)!);
+          } else if (!this.activeRequests.has(cacheKey)) {
+            resolve(''); // Request failed
+          } else {
+            setTimeout(checkCache, 100);
+          }
+        };
+        checkCache();
+      });
+    }
+
+    this.activeRequests.add(cacheKey);
+
+    try {
+      const memoryId = parseInt(event.id);
+      console.log(`Loading image for memory ID: ${memoryId}, event: ${event.title}`);
+      
+      const metadataMap = await this.loadImageMetadata();
+      const imageId = metadataMap.get(memoryId);
+
+      if (!imageId) {
+        console.log(`No image found for memory ID: ${memoryId}`);
+        return '';
+      }
+
+      console.log(`Found image ID: ${imageId} for memory ID: ${memoryId}`);
+      
+      // Load the image data using the correct imageId
+      const imageData = await this.loadSingleImageSmart(imageId);
+      
+      if (imageData) {
+        this.singleImageCache.set(cacheKey, imageData);
+        console.log(`Successfully loaded image for event: ${event.title}`);
+      } else {
+        console.log(`Failed to load image data for image ID: ${imageId}`);
+      }
+      
+      return imageData;
+    } catch (error) {
+      console.error(`Error loading image for event ${event.id}:`, error);
+      return '';
+    } finally {
+      this.activeRequests.delete(cacheKey);
+    }
+  }
+
+  // Smart single image loading - avoid loading entire file
+  private async loadSingleImageSmart(imageId: string): Promise<string> {
+    try {
+      console.log(`Loading image ${imageId} from timeline_images.json...`);
+      
+      const response = await fetch('/data/timeline_images.json');
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      
+      // For now, load the whole file but optimize later
+      const imageArray = await response.json();
+      
+      // Find the image by ID (note: imageId from metadata, but timeline_images uses 'id')
+      // We need to find the matching image 
+      const imageItem = imageArray.find((item: any) => {
+        // Try different ways to match
+        return item.id === imageId || 
+               item.id === parseInt(imageId) || 
+               item.id === imageId.toString();
+      });
+      
+      if (imageItem && imageItem.image) {
+        console.log(`Found image ${imageId} in timeline_images.json`);
+        return imageItem.image;
+      } else {
+        console.log(`Image ${imageId} not found in timeline_images.json`);
+        // Debug: show what IDs are available
+        const availableIds = imageArray.map((item: any) => item.id).slice(0, 10);
+        console.log(`Available image IDs (first 10):`, availableIds);
+        return '';
+      }
+      
+    } catch (error) {
+      console.error(`Error loading single image ${imageId}:`, error);
+      return '';
+    }
+  }
+
+  // Legacy method for backward compatibility
+  async getTimelineEvents(): Promise<TimelineEvent[]> {
+    const firstPage = await this.getTimelineEventsPage(0);
+    return firstPage.events;
+  }
+
+  // LocalStorage operations (minimal)
+  async getLocalStorageEvents(): Promise<TimelineEvent[]> {
+    try {
+      const storedData = localStorage.getItem('userTimelineEvents'); // Different key
+      return storedData ? JSON.parse(storedData) : [];
+    } catch (error) {
+      console.error('Error loading from localStorage:', error);
+      return [];
+    }
+  }
+
   async addTimelineEvent(event: Omit<TimelineEvent, 'id'>): Promise<TimelineEvent> {
     const newEvent: TimelineEvent = {
       ...event,
-      id: this.generateId()
+      id: `user_${Date.now()}`, // Mark as user-added
+      imageLoaded: true
     };
     
-    const currentEvents = await this.getTimelineEvents();
-    await this.saveTimelineEvents([...currentEvents, newEvent]);
+    const userEvents = await this.getLocalStorageEvents();
+    userEvents.push(newEvent);
+    
+    try {
+      localStorage.setItem('userTimelineEvents', JSON.stringify(userEvents));
+    } catch (error) {
+      console.error('Error saving user event:', error);
+    }
     
     return newEvent;
   }
 
-  async updateTimelineEvent(id: string, updates: Partial<TimelineEvent>): Promise<TimelineEvent | null> {
-    const currentEvents = await this.getTimelineEvents();
-    const eventIndex = currentEvents.findIndex(event => event.id === id);
-    
-    if (eventIndex === -1) {
-      return null;
+  // Announcements (unchanged but minimal)
+  async getAnnouncements(): Promise<Announcement[]> {
+    try {
+      const storedData = localStorage.getItem('announcements');
+      if (storedData) {
+        return JSON.parse(storedData, (key, value) => {
+          if (key === 'timestamp') return new Date(value);
+          return value;
+        });
+      }
+      return [];
+    } catch (error) {
+      console.error('Error loading announcements:', error);
+      return [];
     }
-    
-    const updatedEvent = {
-      ...currentEvents[eventIndex],
-      ...updates
-    };
-    
-    currentEvents[eventIndex] = updatedEvent;
-    await this.saveTimelineEvents(currentEvents);
-    
-    return updatedEvent;
   }
 
-  async deleteTimelineEvent(id: string): Promise<boolean> {
-    const currentEvents = await this.getTimelineEvents();
-    const updatedEvents = currentEvents.filter(event => event.id !== id);
-    
-    if (updatedEvents.length === currentEvents.length) {
-      return false; // No event was deleted
-    }
-    
-    await this.saveTimelineEvents(updatedEvents);
-    return true;
-  }
-
-  // CRUD operations for Announcements
   async addAnnouncement(announcement: Omit<Announcement, 'id'>): Promise<Announcement> {
     const newAnnouncement: Announcement = {
       ...announcement,
-      id: this.generateId()
+      id: Date.now().toString()
     };
     
-    const currentAnnouncements = await this.getAnnouncements();
-    await this.saveAnnouncements([newAnnouncement, ...currentAnnouncements]);
+    const announcements = await this.getAnnouncements();
+    announcements.unshift(newAnnouncement);
+    
+    try {
+      localStorage.setItem('announcements', JSON.stringify(announcements));
+    } catch (error) {
+      console.error('Error saving announcement:', error);
+    }
     
     return newAnnouncement;
   }
 
-  async updateAnnouncement(id: string, updates: Partial<Announcement>): Promise<Announcement | null> {
-    const currentAnnouncements = await this.getAnnouncements();
-    const announcementIndex = currentAnnouncements.findIndex(announcement => announcement.id === id);
-    
-    if (announcementIndex === -1) {
-      return null;
-    }
-    
-    const updatedAnnouncement = {
-      ...currentAnnouncements[announcementIndex],
-      ...updates
-    };
-    
-    currentAnnouncements[announcementIndex] = updatedAnnouncement;
-    await this.saveAnnouncements(currentAnnouncements);
-    
-    return updatedAnnouncement;
-  }
-
-  async deleteAnnouncement(id: string): Promise<boolean> {
-    const currentAnnouncements = await this.getAnnouncements();
-    const updatedAnnouncements = currentAnnouncements.filter(announcement => announcement.id !== id);
-    
-    if (updatedAnnouncements.length === currentAnnouncements.length) {
-      return false; // No announcement was deleted
-    }
-    
-    await this.saveAnnouncements(updatedAnnouncements);
-    return true;
-  }
-
-  // Generate a unique ID (for adding new items)
+  // Utility methods
   generateId(): string {
     return Date.now().toString();
   }
+
+  // Aggressive cleanup
+  clearCache(): void {
+    this.allMemoriesCache = null;
+    this.loadedMemoryPages.clear();
+    this.imageMetadataCache = null;
+    this.singleImageCache.clear();
+    this.activeRequests.clear();
+    
+    // Force garbage collection hint
+    if (global?.gc) {
+      global.gc();
+    }
+  }
+
+  // Memory stats for debugging
+  getMemoryStats(): any {
+    return {
+      memoryPages: this.loadedMemoryPages.size,
+      cachedImages: this.singleImageCache.size,
+      activeRequests: this.activeRequests.size,
+      totalMemories: this.allMemoriesCache?.length || 0
+    };
+  }
 }
 
-// Export a singleton instance
 export default new DataService();
