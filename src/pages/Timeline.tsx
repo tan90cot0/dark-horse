@@ -1017,50 +1017,60 @@ function Timeline() {
               <div>
                 <label className="block text-sm font-medium mb-2">Image</label>
                 <div className="space-y-3">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    disabled={uploadingImage}
-                    className="w-full p-3 bg-white/5 border border-white/10 rounded-lg focus:border-purple-500 transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-purple-600 file:text-white hover:file:bg-purple-700"
-                  />
-                  {uploadingImage && (
-                    <div className="flex items-center space-x-2 text-sm text-gray-400">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-500"></div>
-                      <span>Uploading image...</span>
-                    </div>
-                  )}
+                  {/* Current Image Preview */}
                   {formData.image && !uploadingImage && (
                     <div className="relative group">
                       <img
                         src={formData.image.startsWith('data:image') ? formData.image : `data:image/jpeg;base64,${formData.image}`}
-                        alt="Image preview"
+                        alt="Current image"
                         className="w-full h-32 object-cover rounded-lg border border-white/20 shadow-md"
                         onError={(e) => {
                           console.error('Image preview failed to load');
                           const target = e.target as HTMLImageElement;
                           target.style.display = 'none';
                           // Show fallback
-                          const fallback = target.nextElementSibling?.nextElementSibling as HTMLElement;
+                          const fallback = target.nextElementSibling as HTMLElement;
                           if (fallback) fallback.style.display = 'flex';
                         }}
                       />
-                      <button
-                        onClick={() => setFormData(prev => ({ ...prev, image: '' }))}
-                        className="absolute top-2 right-2 p-1.5 bg-red-600/90 backdrop-blur-sm rounded-full hover:bg-red-700/90 transition-all duration-200 shadow-lg opacity-0 group-hover:opacity-100"
-                        title="Remove image"
-                      >
-                        <X size={14} className="text-white" />
-                      </button>
-                      {/* Fallback UI for broken images */}
                       <div 
-                        className="absolute inset-0 bg-gradient-to-br from-gray-700 to-gray-800 rounded-lg border border-white/20 flex items-center justify-center"
+                        className="w-full h-32 bg-gradient-to-br from-gray-700 to-gray-800 rounded-lg border border-white/20 flex items-center justify-center"
                         style={{ display: 'none' }}
                       >
                         <div className="text-center text-gray-400">
                           <ImageIcon size={24} className="mx-auto mb-1" />
                           <p className="text-xs">Image available</p>
                         </div>
+                      </div>
+                      <button
+                        onClick={() => setFormData(prev => ({ ...prev, image: '' }))}
+                        className="absolute top-2 right-2 p-1.5 bg-red-600/90 backdrop-blur-sm rounded-full hover:bg-red-700/90 transition-all duration-200 shadow-lg opacity-0 group-hover:opacity-100"
+                        title="Remove current image"
+                      >
+                        <X size={14} className="text-white" />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Upload Progress */}
+                  {uploadingImage && (
+                    <div className="flex items-center justify-center space-x-3 p-8 bg-white/5 border border-white/10 rounded-lg">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-500"></div>
+                      <span className="text-sm text-gray-300">Processing image...</span>
+                    </div>
+                  )}
+
+                  {/* File Input */}
+                  {!uploadingImage && (
+                    <div className="relative">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="w-full p-3 bg-white/5 border border-white/10 rounded-lg focus:border-purple-500 transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-purple-600 file:text-white hover:file:bg-purple-700"
+                      />
+                      <div className="text-xs text-gray-400 mt-1">
+                        {formData.image ? 'Choose a new image to replace current one' : 'Max size: 5MB'}
                       </div>
                     </div>
                   )}
@@ -1184,50 +1194,60 @@ function Timeline() {
               <div>
                 <label className="block text-sm font-medium mb-2">Image</label>
                 <div className="space-y-3">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    disabled={uploadingImage}
-                    className="w-full p-3 bg-white/5 border border-white/10 rounded-lg focus:border-purple-500 transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-purple-600 file:text-white hover:file:bg-purple-700"
-                  />
-                  {uploadingImage && (
-                    <div className="flex items-center space-x-2 text-sm text-gray-400">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-500"></div>
-                      <span>Uploading image...</span>
-                    </div>
-                  )}
+                  {/* Current Image Preview */}
                   {formData.image && !uploadingImage && (
                     <div className="relative group">
                       <img
                         src={formData.image.startsWith('data:image') ? formData.image : `data:image/jpeg;base64,${formData.image}`}
-                        alt="Image preview"
+                        alt="Current image"
                         className="w-full h-32 object-cover rounded-lg border border-white/20 shadow-md"
                         onError={(e) => {
                           console.error('Image preview failed to load');
                           const target = e.target as HTMLImageElement;
                           target.style.display = 'none';
                           // Show fallback
-                          const fallback = target.nextElementSibling?.nextElementSibling as HTMLElement;
+                          const fallback = target.nextElementSibling as HTMLElement;
                           if (fallback) fallback.style.display = 'flex';
                         }}
                       />
-                      <button
-                        onClick={() => setFormData(prev => ({ ...prev, image: '' }))}
-                        className="absolute top-2 right-2 p-1.5 bg-red-600/90 backdrop-blur-sm rounded-full hover:bg-red-700/90 transition-all duration-200 shadow-lg opacity-0 group-hover:opacity-100"
-                        title="Remove image"
-                      >
-                        <X size={14} className="text-white" />
-                      </button>
-                      {/* Fallback UI for broken images */}
                       <div 
-                        className="absolute inset-0 bg-gradient-to-br from-gray-700 to-gray-800 rounded-lg border border-white/20 flex items-center justify-center"
+                        className="w-full h-32 bg-gradient-to-br from-gray-700 to-gray-800 rounded-lg border border-white/20 flex items-center justify-center"
                         style={{ display: 'none' }}
                       >
                         <div className="text-center text-gray-400">
                           <ImageIcon size={24} className="mx-auto mb-1" />
                           <p className="text-xs">Image available</p>
                         </div>
+                      </div>
+                      <button
+                        onClick={() => setFormData(prev => ({ ...prev, image: '' }))}
+                        className="absolute top-2 right-2 p-1.5 bg-red-600/90 backdrop-blur-sm rounded-full hover:bg-red-700/90 transition-all duration-200 shadow-lg opacity-0 group-hover:opacity-100"
+                        title="Remove current image"
+                      >
+                        <X size={14} className="text-white" />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Upload Progress */}
+                  {uploadingImage && (
+                    <div className="flex items-center justify-center space-x-3 p-8 bg-white/5 border border-white/10 rounded-lg">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-500"></div>
+                      <span className="text-sm text-gray-300">Processing image...</span>
+                    </div>
+                  )}
+
+                  {/* File Input */}
+                  {!uploadingImage && (
+                    <div className="relative">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="w-full p-3 bg-white/5 border border-white/10 rounded-lg focus:border-purple-500 transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-purple-600 file:text-white hover:file:bg-purple-700"
+                      />
+                      <div className="text-xs text-gray-400 mt-1">
+                        {formData.image ? 'Choose a new image to replace current one' : 'Max size: 5MB'}
                       </div>
                     </div>
                   )}
