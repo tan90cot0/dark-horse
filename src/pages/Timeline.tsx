@@ -21,17 +21,17 @@ const MinimalTimelineImage = React.memo(({
   const [shouldLoad, setShouldLoad] = useState(false);
   const imgRef = useRef<HTMLDivElement>(null);
 
-  // More aggressive intersection observer - only load when really visible
+  // Balanced intersection observer - not too aggressive
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting && entry.intersectionRatio > 0.5 && !shouldLoad) {
+          if (entry.isIntersecting && entry.intersectionRatio > 0.3 && !shouldLoad) {
             setShouldLoad(true);
           }
         });
       },
-      { threshold: 0.5, rootMargin: '0px' } // More restrictive loading
+      { threshold: 0.3, rootMargin: '50px' } // Balanced loading
     );
 
     if (imgRef.current) {
@@ -114,56 +114,135 @@ const MinimalTimelineImage = React.memo(({
   );
 });
 
-// Component to display additional memory fields - Memoized for performance
+// Component to display ALL memory fields with progressive loading - No data hidden!
 const AdditionalMemoryFields = React.memo(({ event }: { event: TimelineEvent }) => {
-  // Only show the most essential fields initially to prevent performance issues
-  const essentialFields = [
-    { key: 'significance', label: 'Significance', icon: '⭐', color: 'text-yellow-400 bg-yellow-500/20' },
-    { key: 'location', label: 'Location', icon: '📍', color: 'text-green-400 bg-green-500/20' },
-    { key: 'restaurant', label: 'Restaurant', icon: '🍽️', color: 'text-orange-400 bg-orange-500/20' },
-    { key: 'notes', label: 'Notes', icon: '📋', color: 'text-gray-400 bg-gray-500/20' },
-    { key: 'note', label: 'Note', icon: '📝', color: 'text-gray-400 bg-gray-500/20' }
+  // ALL 69 fields - organized by importance for progressive loading
+  const allFieldConfigs = [
+    // Tier 1: Most frequently used fields (load immediately)
+    { key: 'significance', label: 'Significance', icon: '⭐', color: 'text-yellow-400 bg-yellow-500/20', tier: 1 },
+    { key: 'location', label: 'Location', icon: '📍', color: 'text-green-400 bg-green-500/20', tier: 1 },
+    { key: 'context', label: 'Context', icon: '🔍', color: 'text-blue-400 bg-blue-500/20', tier: 1 },
+    { key: 'outcome', label: 'Outcome', icon: '🎯', color: 'text-purple-400 bg-purple-500/20', tier: 1 },
+    { key: 'realization', label: 'Realization', icon: '💡', color: 'text-yellow-400 bg-yellow-500/20', tier: 1 },
+    { key: 'gifts', label: 'Gifts', icon: '🎁', color: 'text-pink-400 bg-pink-500/20', tier: 1 },
+    { key: 'gift', label: 'Gift', icon: '🎁', color: 'text-pink-400 bg-pink-500/20', tier: 1 },
+    { key: 'restaurant', label: 'Restaurant', icon: '🍽️', color: 'text-orange-400 bg-orange-500/20', tier: 1 },
+    { key: 'notes', label: 'Notes', icon: '📋', color: 'text-gray-400 bg-gray-500/20', tier: 1 },
+    { key: 'note', label: 'Note', icon: '📝', color: 'text-gray-400 bg-gray-500/20', tier: 1 },
+    
+    // Tier 2: Important fields (load with slight delay)
+    { key: 'activities', label: 'Activities', icon: '🎯', color: 'text-indigo-400 bg-indigo-500/20', tier: 2 },
+    { key: 'gesture', label: 'Gesture', icon: '🤝', color: 'text-blue-400 bg-blue-500/20', tier: 2 },
+    { key: 'details', label: 'Details', icon: '📄', color: 'text-gray-400 bg-gray-500/20', tier: 2 },
+    { key: 'memorable_event', label: 'Memorable Event', icon: '🌟', color: 'text-yellow-400 bg-yellow-500/20', tier: 2 },
+    { key: 'milestone', label: 'Milestone', icon: '🏁', color: 'text-yellow-400 bg-yellow-500/20', tier: 2 },
+    { key: 'emotional_detail', label: 'Emotional Detail', icon: '💭', color: 'text-purple-400 bg-purple-500/20', tier: 2 },
+    { key: 'favorite_moment', label: 'Favorite Moment', icon: '⭐', color: 'text-yellow-400 bg-yellow-500/20', tier: 2 },
+    { key: 'food', label: 'Food', icon: '🍕', color: 'text-orange-400 bg-orange-500/20', tier: 2 },
+    { key: 'locations', label: 'Locations', icon: '🗺️', color: 'text-green-400 bg-green-500/20', tier: 2 },
+    { key: 'celebration_type', label: 'Celebration Type', icon: '🎉', color: 'text-pink-400 bg-pink-500/20', tier: 2 },
+    
+    // Tier 3: All other fields (load progressively)
+    { key: 'adventure', label: 'Adventure', icon: '🏔️', color: 'text-green-400 bg-green-500/20', tier: 3 },
+    { key: 'attempted_dish', label: 'Attempted Dish', icon: '👨‍🍳', color: 'text-orange-400 bg-orange-500/20', tier: 3 },
+    { key: 'benefit', label: 'Benefit', icon: '✅', color: 'text-green-400 bg-green-500/20', tier: 3 },
+    { key: 'budget_notes', label: 'Budget Notes', icon: '💰', color: 'text-yellow-400 bg-yellow-500/20', tier: 3 },
+    { key: 'care', label: 'Care', icon: '💚', color: 'text-green-400 bg-green-500/20', tier: 3 },
+    { key: 'care_actions', label: 'Care Actions', icon: '🤝', color: 'text-blue-400 bg-blue-500/20', tier: 3 },
+    { key: 'comfort_items', label: 'Comfort Items', icon: '🛋️', color: 'text-purple-400 bg-purple-500/20', tier: 3 },
+    { key: 'companions', label: 'Companions', icon: '👥', color: 'text-blue-400 bg-blue-500/20', tier: 3 },
+    { key: 'conflict', label: 'Conflict', icon: '⚔️', color: 'text-red-400 bg-red-500/20', tier: 3 },
+    { key: 'constraint', label: 'Constraint', icon: '⛓️', color: 'text-gray-400 bg-gray-500/20', tier: 3 },
+    { key: 'devotion', label: 'Devotion', icon: '💝', color: 'text-pink-400 bg-pink-500/20', tier: 3 },
+    { key: 'discovery', label: 'Discovery', icon: '🔬', color: 'text-cyan-400 bg-cyan-500/20', tier: 3 },
+    { key: 'doctor_quote', label: 'Doctor Quote', icon: '👨‍⚕️', color: 'text-green-400 bg-green-500/20', tier: 3 },
+    { key: 'eating_pattern', label: 'Eating Pattern', icon: '🍽️', color: 'text-orange-400 bg-orange-500/20', tier: 3 },
+    { key: 'effort', label: 'Effort', icon: '💪', color: 'text-blue-400 bg-blue-500/20', tier: 3 },
+    { key: 'emotional_impact', label: 'Emotional Impact', icon: '💥', color: 'text-red-400 bg-red-500/20', tier: 3 },
+    { key: 'emotional_support', label: 'Emotional Support', icon: '🤗', color: 'text-pink-400 bg-pink-500/20', tier: 3 },
+    { key: 'event', label: 'Event', icon: '📅', color: 'text-blue-400 bg-blue-500/20', tier: 3 },
+    { key: 'famous_quote', label: 'Famous Quote', icon: '💬', color: 'text-yellow-400 bg-yellow-500/20', tier: 3 },
+    { key: 'festival', label: 'Festival', icon: '🎊', color: 'text-pink-400 bg-pink-500/20', tier: 3 },
+    { key: 'first_experience', label: 'First Experience', icon: '🥇', color: 'text-gold-400 bg-yellow-500/20', tier: 3 },
+    { key: 'firsts', label: 'Firsts', icon: '🏆', color: 'text-gold-400 bg-yellow-500/20', tier: 3 },
+    { key: 'flex', label: 'Flex', icon: '💫', color: 'text-purple-400 bg-purple-500/20', tier: 3 },
+    { key: 'food_choice', label: 'Food Choice', icon: '🍴', color: 'text-orange-400 bg-orange-500/20', tier: 3 },
+    { key: 'incident', label: 'Incident', icon: '⚠️', color: 'text-red-400 bg-red-500/20', tier: 3 },
+    { key: 'ingredients', label: 'Ingredients', icon: '🧄', color: 'text-green-400 bg-green-500/20', tier: 3 },
+    { key: 'initial_feeling', label: 'Initial Feeling', icon: '💫', color: 'text-purple-400 bg-purple-500/20', tier: 3 },
+    { key: 'logistics', label: 'Logistics', icon: '📋', color: 'text-gray-400 bg-gray-500/20', tier: 3 },
+    { key: 'medical_concern', label: 'Medical Concern', icon: '🏥', color: 'text-red-400 bg-red-500/20', tier: 3 },
+    { key: 'medical_details', label: 'Medical Details', icon: '👨‍⚕️', color: 'text-green-400 bg-green-500/20', tier: 3 },
+    { key: 'memorable_incident', label: 'Memorable Incident', icon: '💭', color: 'text-purple-400 bg-purple-500/20', tier: 3 },
+    { key: 'memorable_items', label: 'Memorable Items', icon: '🏺', color: 'text-brown-400 bg-amber-500/20', tier: 3 },
+    { key: 'memorable_quote', label: 'Memorable Quote', icon: '💬', color: 'text-yellow-400 bg-yellow-500/20', tier: 3 },
+    { key: 'method', label: 'Method', icon: '⚙️', color: 'text-gray-400 bg-gray-500/20', tier: 3 },
+    { key: 'observation', label: 'Observation', icon: '👁️', color: 'text-cyan-400 bg-cyan-500/20', tier: 3 },
+    { key: 'occasion', label: 'Occasion', icon: '🎪', color: 'text-pink-400 bg-pink-500/20', tier: 3 },
+    { key: 'order', label: 'Order', icon: '📋', color: 'text-gray-400 bg-gray-500/20', tier: 3 },
+    { key: 'organization', label: 'Organization', icon: '🏢', color: 'text-blue-400 bg-blue-500/20', tier: 3 },
+    { key: 'outlet', label: 'Outlet', icon: '🚪', color: 'text-gray-400 bg-gray-500/20', tier: 3 },
+    { key: 'pattern', label: 'Pattern', icon: '🔄', color: 'text-blue-400 bg-blue-500/20', tier: 3 },
+    { key: 'promise', label: 'Promise', icon: '🤝', color: 'text-pink-400 bg-pink-500/20', tier: 3 },
+    { key: 'regret', label: 'Regret', icon: '😔', color: 'text-red-400 bg-red-500/20', tier: 3 },
+    { key: 'response', label: 'Response', icon: '💬', color: 'text-blue-400 bg-blue-500/20', tier: 3 },
+    { key: 'restaurants', label: 'Restaurants', icon: '🏪', color: 'text-orange-400 bg-orange-500/20', tier: 3 },
+    { key: 'role', label: 'Role', icon: '👤', color: 'text-blue-400 bg-blue-500/20', tier: 3 },
+    { key: 'saved_message', label: 'Saved Message', icon: '💌', color: 'text-pink-400 bg-pink-500/20', tier: 3 },
+    { key: 'separation_duration', label: 'Separation Duration', icon: '⏰', color: 'text-red-400 bg-red-500/20', tier: 3 },
+    { key: 'song', label: 'Song', icon: '🎵', color: 'text-purple-400 bg-purple-500/20', tier: 3 },
+    { key: 'song_type', label: 'Song Type', icon: '🎶', color: 'text-purple-400 bg-purple-500/20', tier: 3 },
+    { key: 'special_quotes', label: 'Special Quotes', icon: '💭', color: 'text-yellow-400 bg-yellow-500/20', tier: 3 },
+    { key: 'strategy', label: 'Strategy', icon: '🧠', color: 'text-blue-400 bg-blue-500/20', tier: 3 },
+    { key: 'successful_dish', label: 'Successful Dish', icon: '👨‍🍳', color: 'text-green-400 bg-green-500/20', tier: 3 },
+    { key: 'surprise_element', label: 'Surprise Element', icon: '🎉', color: 'text-pink-400 bg-pink-500/20', tier: 3 },
+    { key: 'telegram_detail', label: 'Telegram Detail', icon: '📱', color: 'text-blue-400 bg-blue-500/20', tier: 3 },
+    { key: 'time', label: 'Time', icon: '🕐', color: 'text-gray-400 bg-gray-500/20', tier: 3 },
+    { key: 'timing', label: 'Timing', icon: '⏱️', color: 'text-gray-400 bg-gray-500/20', tier: 3 },
+    { key: 'trigger', label: 'Trigger', icon: '⚡', color: 'text-red-400 bg-red-500/20', tier: 3 },
+    { key: 'unique_elements', label: 'Unique Elements', icon: '✨', color: 'text-purple-400 bg-purple-500/20', tier: 3 },
+    { key: 'witnesses', label: 'Witnesses', icon: '👥', color: 'text-blue-400 bg-blue-500/20', tier: 3 },
   ];
 
-  const [showAllFields, setShowAllFields] = useState(false);
+  const [loadedTiers, setLoadedTiers] = useState<Set<number>>(new Set([1])); // Start with tier 1 loaded
 
-  // Show only essential fields initially
-  const fieldsToShow = showAllFields ? 
-    // If expanded, show more fields but still limited
-    [
-      ...essentialFields,
-      { key: 'context', label: 'Context', icon: '🔍', color: 'text-blue-400 bg-blue-500/20' },
-      { key: 'outcome', label: 'Outcome', icon: '🎯', color: 'text-purple-400 bg-purple-500/20' },
-      { key: 'realization', label: 'Realization', icon: '💡', color: 'text-yellow-400 bg-yellow-500/20' },
-      { key: 'gifts', label: 'Gifts', icon: '🎁', color: 'text-pink-400 bg-pink-500/20' },
-      { key: 'activities', label: 'Activities', icon: '🎯', color: 'text-indigo-400 bg-indigo-500/20' }
-    ] : 
-    essentialFields;
+  // Progressive loading of field tiers
+  useEffect(() => {
+    // Load tier 2 after a short delay
+    const timer2 = setTimeout(() => {
+      setLoadedTiers(prev => new Set([...prev, 2]));
+    }, 500);
 
-  // Filter to only show fields that have values
-  const fieldsWithValues = fieldsToShow.filter(config => {
+    // Load tier 3 after a longer delay
+    const timer3 = setTimeout(() => {
+      setLoadedTiers(prev => new Set([...prev, 3]));
+    }, 1500);
+
+    return () => {
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+    };
+  }, []);
+
+  // Filter to show all fields with values from loaded tiers
+  const fieldsToShow = allFieldConfigs.filter(config => {
+    const isLoaded = loadedTiers.has(config.tier);
     const value = event[config.key];
-    return value && value !== '' && (Array.isArray(value) ? value.length > 0 : true);
+    const hasValue = value && value !== '' && (Array.isArray(value) ? value.length > 0 : true);
+    return isLoaded && hasValue;
   });
 
-  if (fieldsWithValues.length === 0) return null;
-
-  const hasMoreFields = showAllFields ? false : (
-    essentialFields.some(field => {
-      const value = event[field.key];
-      return value && value !== '';
-    }) && Object.keys(event).length > 10 // Rough estimate of more fields
-  );
+  if (fieldsToShow.length === 0) return null;
 
   return (
     <div className="mt-4 space-y-2">
-      {fieldsWithValues.map(config => {
+      {fieldsToShow.map(config => {
         const value = event[config.key];
         const displayValue = Array.isArray(value) ? value.join(', ') : value;
         
-        // Truncate long values more aggressively
-        const truncatedValue = displayValue && displayValue.length > 100 
-          ? displayValue.substring(0, 100) + '...' 
+        // Moderate truncation - still readable but manageable
+        const truncatedValue = displayValue && displayValue.length > 150 
+          ? displayValue.substring(0, 150) + '...' 
           : displayValue;
         
         return (
@@ -179,13 +258,12 @@ const AdditionalMemoryFields = React.memo(({ event }: { event: TimelineEvent }) 
         );
       })}
       
-      {hasMoreFields && (
-        <button
-          onClick={() => setShowAllFields(!showAllFields)}
-          className="text-xs text-purple-400 hover:text-purple-300 transition-colors mt-2"
-        >
-          {showAllFields ? 'Show Less' : 'Show More Fields'}
-        </button>
+      {/* Show loading indicator for fields still loading */}
+      {!loadedTiers.has(3) && (
+        <div className="text-xs text-gray-500 mt-2 flex items-center">
+          <Loader className="animate-spin h-3 w-3 mr-1" />
+          Loading additional fields...
+        </div>
       )}
     </div>
   );
@@ -303,7 +381,7 @@ function Timeline() {
           clearTimeout(timeoutId);
           timeoutId = setTimeout(() => {
             loadNextPage();
-          }, 1000); // 1000ms delay
+          }, 500); // 500ms delay for better UX
         }
       },
       { threshold: 0.1, rootMargin: '200px' } // Increased rootMargin for better UX
