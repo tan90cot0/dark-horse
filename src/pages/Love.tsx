@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Heart, Sparkles, RefreshCw } from 'lucide-react';
 import surpriseService, { SurpriseContent } from '../services/surpriseService';
 
-function Surprise() {
+function Love() {
   const [hasAnswered, setHasAnswered] = useState(false);
   const [noButtonPosition, setNoButtonPosition] = useState({ x: 0, y: 0 });
   const [content, setContent] = useState<SurpriseContent | null>(null);
@@ -289,16 +289,6 @@ function Surprise() {
                 </>
               )}
             </motion.div>
-
-            {/* Cute footer message */}
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1 }}
-              className="mt-8 text-sm text-gray-400 italic"
-            >
-              A little surprise from your coding companion 💝
-            </motion.p>
           </motion.div>
         </div>
       </div>
@@ -334,4 +324,4 @@ function Surprise() {
   );
 }
 
-export default Surprise; 
+export default Love; 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Home, Calendar, Map, MessageSquare, MessageCircle, Menu, X, Heart } from 'lucide-react';
+import { Users, Clock, Map, MessageSquare, Menu, X, Heart, Flower2, Calendar } from 'lucide-react';
 
 /**
  * Navbar component - Main navigation for the application
@@ -13,12 +13,14 @@ function Navbar() {
   const location = useLocation();
 
   const navItems = [
-    { path: '/', label: 'Us', icon: Home },
-    { path: '/timeline', label: 'Timeline', icon: Calendar },
+    { path: '/', label: 'Us', icon: Users },
+    { path: '/timeline', label: 'Timeline', icon: Clock },
     { path: '/map', label: 'Map', icon: Map },
     { path: '/notice-board', label: 'Notice Board', icon: MessageSquare },
-    { path: '/surprise', label: 'Surprise', icon: Heart },
-    { path: '/chat/aryan', label: 'Chat', icon: MessageCircle }
+    { path: '/love', label: 'Love', icon: Heart },
+    { path: '/wellness', label: 'Wellness', icon: Flower2 },
+    { path: '/calendar', label: 'Calendar', icon: Calendar },
+    { path: '/chat', label: 'Chat', icon: MessageSquare }
   ];
 
   const toggleMenu = () => {
@@ -26,44 +28,48 @@ function Navbar() {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 glass-effect border-b border-white/10">
+    <motion.nav
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      className="fixed top-0 left-0 right-0 z-50 bg-black/20 backdrop-blur-lg border-b border-white/10"
+    >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              className="text-2xl font-bold gradient-text"
-            >
-              Humaara Adda
-            </motion.div>
+            <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-500 rounded-lg flex items-center justify-center">
+              <Heart className="w-5 h-5 text-white" />
+            </div>
+            <span className="font-bold text-xl gradient-text">Our Story</span>
           </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.path || 
-                (item.path === '/chat/aryan' && location.pathname.startsWith('/chat'));
-              
+            {navItems.map(({ path, label, icon: Icon }) => {
+              const isActive = location.pathname === path;
               return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`relative px-4 py-2 rounded-lg transition-all duration-300 flex items-center space-x-2 ${
-                    isActive 
-                      ? 'text-white bg-white/10' 
-                      : 'text-white/70 hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  <Icon size={18} />
-                  <span>{item.label}</span>
-                  {isActive && (
-                    <motion.div
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"
-                      layoutId="activeTab"
-                    />
-                  )}
+                <Link key={path} to={path}>
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className={`
+                      relative px-4 py-2 rounded-lg transition-all duration-300 flex items-center space-x-2
+                      ${isActive 
+                        ? 'text-white bg-white/10' 
+                        : 'text-gray-300 hover:text-white hover:bg-white/5'
+                      }
+                    `}
+                  >
+                    <Icon size={18} />
+                    <span className="text-sm font-medium">{label}</span>
+                    {isActive && (
+                      <motion.div
+                        layoutId="activeTab"
+                        className="absolute inset-0 bg-gradient-to-r from-pink-500/20 to-purple-500/20 rounded-lg"
+                        initial={false}
+                      />
+                    )}
+                  </motion.div>
                 </Link>
               );
             })}
@@ -91,7 +97,7 @@ function Navbar() {
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path || 
-                (item.path === '/chat/aryan' && location.pathname.startsWith('/chat'));
+                (item.path === '/chat' && location.pathname.startsWith('/chat'));
               
               return (
                 <Link
@@ -112,7 +118,7 @@ function Navbar() {
           </motion.div>
         )}
       </div>
-    </nav>
+    </motion.nav>
   );
 }
 
