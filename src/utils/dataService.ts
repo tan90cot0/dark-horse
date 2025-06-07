@@ -268,12 +268,12 @@ class DataService {
 
   // Convert memory to timeline event
   convertMemoryToTimelineEvent(memory: DiaryMemory): TimelineEvent {
-    return {
+    const timelineEvent: TimelineEvent = {
       id: memory.id.toString(),
       title: memory.title,
       date: memory.date || '',
       description: memory.content,
-      image: '', // No image initially
+      image: 'placeholder', // Mark that image should be loaded
       isHighlight: memory.isHighlight || 
                    memory.significance === 'major_regret' || 
                    memory.significance?.includes('first_i_love_you') ||
@@ -364,6 +364,25 @@ class DataService {
       unique_elements: memory.unique_elements,
       witnesses: memory.witnesses
     };
+
+    // Handle nested objects by flattening them
+    if (memory.details && typeof memory.details === 'object') {
+      Object.entries(memory.details).forEach(([key, value]) => {
+        // Add nested properties to the main object with prefix to avoid conflicts
+        timelineEvent[`details_${key}`] = value;
+      });
+    }
+
+    // Handle any other nested objects
+    Object.entries(memory).forEach(([key, value]) => {
+      if (value && typeof value === 'object' && !Array.isArray(value) && key !== 'details') {
+        Object.entries(value).forEach(([nestedKey, nestedValue]) => {
+          timelineEvent[`${key}_${nestedKey}`] = nestedValue;
+        });
+      }
+    });
+
+    return timelineEvent;
   }
 
   // Get timeline events for specific page only
@@ -539,7 +558,7 @@ class DataService {
   // LocalStorage operations (minimal)
   async getLocalStorageEvents(): Promise<TimelineEvent[]> {
     try {
-      const storedData = localStorage.getItem('userTimelineEvents'); // Different key
+      const storedData = localStorage.getItem('timeline_events'); // Use consistent key
       return storedData ? JSON.parse(storedData) : [];
     } catch (error) {
       console.error('Error loading from localStorage:', error);
@@ -548,26 +567,49 @@ class DataService {
   }
 
   async addTimelineEvent(event: Omit<TimelineEvent, 'id'>): Promise<TimelineEvent> {
+    const events = await this.getLocalStorageEvents();
     const newEvent: TimelineEvent = {
       date: '',
       title: '',
       description: '',
       image: '',
       ...event,
-      id: `user_${Date.now()}`, // Mark as user-added
-      imageLoaded: true
+      id: this.generateId()
     };
     
-    const userEvents = await this.getLocalStorageEvents();
-    userEvents.push(newEvent);
+    events.unshift(newEvent); // Add to beginning for chronological order
     
     try {
-      localStorage.setItem('userTimelineEvents', JSON.stringify(userEvents));
+      localStorage.setItem('timeline_events', JSON.stringify(events));
+      console.log('Timeline event saved to localStorage');
     } catch (error) {
-      console.error('Error saving user event:', error);
+      console.error('Error saving to localStorage:', error);
+      throw new Error('Failed to save event');
     }
     
     return newEvent;
+  }
+
+  async updateTimelineEvent(eventId: string, updatedData: Partial<TimelineEvent>): Promise<TimelineEvent> {
+    const events = await this.getLocalStorageEvents();
+    const eventIndex = events.findIndex(event => event.id === eventId);
+    
+    if (eventIndex === -1) {
+      throw new Error('Event not found');
+    }
+    
+    const updatedEvent = { ...events[eventIndex], ...updatedData };
+    events[eventIndex] = updatedEvent;
+    
+    try {
+      localStorage.setItem('timeline_events', JSON.stringify(events));
+      console.log('Timeline event updated in localStorage');
+    } catch (error) {
+      console.error('Error updating in localStorage:', error);
+      throw new Error('Failed to update event');
+    }
+    
+    return updatedEvent;
   }
 
   // Announcements (unchanged but minimal)
