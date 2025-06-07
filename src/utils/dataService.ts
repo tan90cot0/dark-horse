@@ -390,6 +390,11 @@ class DataService {
   // Get timeline events for specific page only
   async getTimelineEventsPage(page: number = 0): Promise<{ events: TimelineEvent[]; hasMore: boolean; total: number }> {
     try {
+      // Fix any JEE Advanced duplicate issues first
+      if (page === 0) {
+        await this.fixJeeAdvancedDuplicate();
+      }
+      
       // Get localStorage events first (these should appear by date, not at top)
       const localStorageEvents = await this.getLocalStorageEvents();
       
@@ -431,12 +436,18 @@ class DataService {
         // Combine all events and sort by date
         const allEvents = [...localStorageEvents, ...jsonEvents];
         
-        // Sort ALL events by date (newest first), regardless of source
+        // Sort ALL events by date (OLDEST first for chronological timeline)
         allEvents.sort((a, b) => {
           if (!a.date && !b.date) return 0;
           if (!a.date) return 1;
           if (!b.date) return -1;
-          return new Date(b.date).getTime() - new Date(a.date).getTime();
+          return new Date(a.date).getTime() - new Date(b.date).getTime(); // OLDEST first
+        });
+        
+        // Additional debug: Show all events after sorting
+        console.log('📋 All events after combining and sorting:');
+        allEvents.forEach((event, index) => {
+          console.log(`  ${index + 1}. "${event.title}" - ${event.date || 'No date'} (ID: ${event.id}, originalEventId: ${event.originalEventId || 'none'})`);
         });
         
         const hasMore = (page + 1) * this.PAGE_SIZE < metadata.total;
@@ -461,7 +472,7 @@ class DataService {
           if (!a.date && !b.date) return 0;
           if (!a.date) return 1;
           if (!b.date) return -1;
-          return new Date(b.date).getTime() - new Date(a.date).getTime();
+          return new Date(a.date).getTime() - new Date(b.date).getTime(); // OLDEST first
         });
 
         const hasMore = (page + 1) * this.PAGE_SIZE < metadata.total;
@@ -482,7 +493,7 @@ class DataService {
         if (!a.date && !b.date) return 0;
         if (!a.date) return 1;
         if (!b.date) return -1;
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
+        return new Date(a.date).getTime() - new Date(b.date).getTime(); // OLDEST first
       });
       return { events: localStorageEvents, hasMore: false, total: localStorageEvents.length };
     }
@@ -774,6 +785,41 @@ class DataService {
       activeRequests: this.activeRequests.size,
       totalMemories: this.allMemoriesCache?.length || 0
     };
+  }
+
+  // Utility method to fix duplicate JEE Advanced issue
+  async fixJeeAdvancedDuplicate(): Promise<void> {
+    const localEvents = await this.getLocalStorageEvents();
+    
+    // Look for JEE Advanced entries in localStorage
+    const jeeAdvancedEvents = localEvents.filter(event => 
+      event.title.includes('JEE Advanced') || event.title.includes('The Beginning')
+    );
+    
+    if (jeeAdvancedEvents.length > 0) {
+      console.log('🔧 Found JEE Advanced events in localStorage:', jeeAdvancedEvents);
+      
+      // Ensure they have originalEventId set
+      let needsUpdate = false;
+      jeeAdvancedEvents.forEach(event => {
+        if (!event.originalEventId) {
+          // This is likely the edited version that should override the original
+          // The original JEE Advanced has ID "4" based on the diary.json structure
+          event.originalEventId = "4";
+          needsUpdate = true;
+          console.log(`🔧 Fixed missing originalEventId for "${event.title}" -> set to "4"`);
+        }
+      });
+      
+      if (needsUpdate) {
+        try {
+          localStorage.setItem('timeline_events', JSON.stringify(localEvents));
+          console.log('✅ Updated localStorage with fixed originalEventId');
+        } catch (error) {
+          console.error('❌ Failed to update localStorage:', error);
+        }
+      }
+    }
   }
 }
 
