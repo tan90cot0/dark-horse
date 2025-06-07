@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Heart, Flower, Moon, Sun, Droplets, Smile, Frown, Meh, Plus, Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar, Heart, Flower, Moon, Sun, Droplets, Smile, Frown, Meh, Plus, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface CycleEntry {
   date: string;
@@ -14,6 +14,7 @@ interface CycleEntry {
 function CycleTracker() {
   const [entries, setEntries] = useState<CycleEntry[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>('');
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [currentEntry, setCurrentEntry] = useState<CycleEntry>({
     date: '',
     phase: 'none',
@@ -103,28 +104,43 @@ function CycleTracker() {
     const savedEntries = localStorage.getItem('cycleEntries');
     
     if (savedEntries) {
-      setEntries(JSON.parse(savedEntries));
+      const parsed = JSON.parse(savedEntries);
+      // Check if we have historical data, if not, regenerate
+      const hasHistoricalData = historicalPeriods.some(date => 
+        parsed.some((entry: CycleEntry) => entry.date === date && entry.isPeriodStart)
+      );
+      
+      if (!hasHistoricalData) {
+        // Regenerate with historical data
+        generateHistoricalData();
+      } else {
+        setEntries(parsed);
+      }
     } else {
       // Generate historical cycle data
-      const historicalEntries: CycleEntry[] = [];
-      
-      historicalPeriods.forEach(periodDate => {
-        const phases = calculatePhases(periodDate);
-        phases.forEach(phase => {
-          historicalEntries.push({
-            date: phase.date,
-            phase: phase.phase,
-            mood: 'none',
-            symptoms: [],
-            notes: '',
-            isPeriodStart: phase.isPeriodStart || false
-          });
-        });
-      });
-      
-      setEntries(historicalEntries);
+      generateHistoricalData();
     }
   }, []);
+
+  const generateHistoricalData = () => {
+    const historicalEntries: CycleEntry[] = [];
+    
+    historicalPeriods.forEach(periodDate => {
+      const phases = calculatePhases(periodDate);
+      phases.forEach(phase => {
+        historicalEntries.push({
+          date: phase.date,
+          phase: phase.phase,
+          mood: 'none',
+          symptoms: [],
+          notes: '',
+          isPeriodStart: phase.isPeriodStart || false
+        });
+      });
+    });
+    
+    setEntries(historicalEntries);
+  };
 
   // Save data to localStorage
   useEffect(() => {
@@ -235,22 +251,83 @@ function CycleTracker() {
 
   const prediction = getNextPeriodPrediction();
 
-  const generateCalendarDays = () => {
-    const today = new Date();
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+
     const days = [];
     
-    // Generate last 60 days and next 60 days for better coverage
-    for (let i = 60; i >= 0; i--) {
-      const date = new Date(today.getTime() - (i * 24 * 60 * 60 * 1000));
-      days.push(date.toISOString().split('T')[0]);
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      days.push(null);
     }
     
-    for (let i = 1; i <= 60; i++) {
-      const date = new Date(today.getTime() + (i * 24 * 60 * 60 * 1000));
-      days.push(date.toISOString().split('T')[0]);
+    // Add days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      days.push(new Date(year, month, day));
     }
     
     return days;
+  };
+
+  const renderCalendarGrid = () => {
+    const days = getDaysInMonth(currentDate);
+    const today = new Date();
+    
+    return (
+      <div className="grid grid-cols-7 gap-2">
+        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+          <div key={day} className="text-center text-sm font-medium text-gray-400 p-2">
+            {day}
+          </div>
+        ))}
+        {days.map((date, index) => {
+          if (!date) {
+            return <div key={index} className="h-12"></div>;
+          }
+          
+          const dateString = date.toISOString().split('T')[0];
+          const entry = getEntryForDate(dateString);
+          const isToday = dateString === today.toISOString().split('T')[0];
+          const isSelected = dateString === selectedDate;
+          
+          return (
+            <motion.button
+              key={dateString}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => handleDateSelect(dateString)}
+              className={`
+                relative h-12 p-1 rounded-lg transition-all duration-200 border
+                ${isSelected ? 'bg-purple-500/30 border border-purple-400' : 'hover:bg-white/10 border-white/10'}
+                ${isToday ? 'ring-2 ring-blue-400' : ''}
+              `}
+            >
+              <div className={`text-sm font-medium ${isToday ? 'text-blue-400' : ''}`}>
+                {date.getDate()}
+              </div>
+              {entry && (
+                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 flex gap-1">
+                  {entry.phase !== 'none' && (
+                    <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${cyclePhases.find(p => p.name === entry.phase)?.color}`}></div>
+                  )}
+                  {entry.mood !== 'none' && (
+                    <div className={`w-2 h-2 rounded-full ${moodIcons[entry.mood].color.replace('text-', 'bg-')}`}></div>
+                  )}
+                  {entry.isPeriodStart && (
+                    <div className="w-2 h-2 rounded-full bg-red-500 ring-1 ring-white"></div>
+                  )}
+                </div>
+              )}
+            </motion.button>
+          );
+        })}
+      </div>
+    );
   };
 
   const getEntryForDate = (date: string) => {
@@ -364,52 +441,71 @@ function CycleTracker() {
                 animate={{ opacity: 1, x: 0 }}
                 className="glass-effect border border-white/10 rounded-2xl p-6"
               >
-                <h3 className="text-xl font-semibold mb-4">Calendar View</h3>
-                <div className="grid grid-cols-7 gap-2 mb-4">
-                  {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(day => (
-                    <div key={day} className="text-center text-sm font-medium text-gray-400 p-2">
-                      {day}
-                    </div>
-                  ))}
-                </div>
-                <div className="grid grid-cols-7 gap-2 max-h-96 overflow-y-auto">
-                  {generateCalendarDays().map(date => {
-                    const entry = getEntryForDate(date);
-                    const dateObj = new Date(date);
-                    const isToday = date === new Date().toISOString().split('T')[0];
-                    const isSelected = date === selectedDate;
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-2xl font-semibold">
+                    {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                  </h3>
+                  <div className="flex gap-2">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))}
+                      className="p-2 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 transition-colors"
+                    >
+                      <ChevronLeft size={20} />
+                    </motion.button>
                     
-                    return (
-                      <motion.button
-                        key={date}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => handleDateSelect(date)}
-                        className={`
-                          relative p-2 text-sm rounded-lg transition-all duration-200
-                          ${isSelected ? 'bg-purple-500/30 border border-purple-400' : 'hover:bg-white/10'}
-                          ${isToday ? 'ring-2 ring-blue-400' : ''}
-                        `}
-                      >
-                        <span className={`${isToday ? 'font-bold text-blue-400' : ''}`}>
-                          {dateObj.getDate()}
-                        </span>
-                        {entry && (
-                          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 flex gap-1">
-                            {entry.phase !== 'none' && (
-                              <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${cyclePhases.find(p => p.name === entry.phase)?.color}`}></div>
-                            )}
-                            {entry.mood !== 'none' && (
-                              <div className={`w-2 h-2 rounded-full ${moodIcons[entry.mood].color.replace('text-', 'bg-')}`}></div>
-                            )}
-                            {entry.isPeriodStart && (
-                              <div className="w-2 h-2 rounded-full bg-red-500 ring-1 ring-white"></div>
-                            )}
-                          </div>
-                        )}
-                      </motion.button>
-                    );
-                  })}
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setCurrentDate(new Date())}
+                      className="px-4 py-2 bg-white/5 border border-white/10 hover:border-white/20 transition-colors rounded-lg text-sm"
+                    >
+                      Today
+                    </motion.button>
+                    
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))}
+                      className="p-2 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 transition-colors"
+                    >
+                      <ChevronRight size={20} />
+                    </motion.button>
+                  </div>
+                </div>
+                
+                {renderCalendarGrid()}
+                
+                {/* Legend */}
+                <div className="mt-6 pt-4 border-t border-white/10">
+                  <h4 className="text-sm font-medium text-gray-300 mb-3">Cycle Phases & Indicators</h4>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-gradient-to-r from-red-500 to-pink-500"></div>
+                      <span className="text-gray-300">Menstrual</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-gradient-to-r from-green-500 to-emerald-500"></div>
+                      <span className="text-gray-300">Follicular</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500"></div>
+                      <span className="text-gray-300">Ovulation</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500"></div>
+                      <span className="text-gray-300">Luteal</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-red-500 ring-1 ring-white"></div>
+                      <span className="text-gray-300">Period Start</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-green-400"></div>
+                      <span className="text-gray-300">Mood Tracked</span>
+                    </div>
+                  </div>
                 </div>
               </motion.div>
             </div>
