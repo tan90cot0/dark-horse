@@ -8,10 +8,12 @@ import LoadingSpinner from '../components/UI/LoadingSpinner';
 // Ultra-minimal Image Component
 const MinimalTimelineImage = ({ 
   event, 
-  className 
+  className,
+  onImageClick
 }: { 
   event: TimelineEvent; 
-  className: string; 
+  className: string;
+  onImageClick?: (imageData: string, title: string) => void;
 }) => {
   const [imageData, setImageData] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
@@ -63,6 +65,12 @@ const MinimalTimelineImage = ({
     }
   };
 
+  const handleImageClick = () => {
+    if (imageData && onImageClick) {
+      onImageClick(imageData, event.title);
+    }
+  };
+
   return (
     <div ref={imgRef} className="relative">
       {!imageData && !isLoading && !hasError && (
@@ -96,8 +104,9 @@ const MinimalTimelineImage = ({
         <img 
           src={imageData.startsWith('data:image') ? imageData : `data:image/jpeg;base64,${imageData}`}
           alt={event.title}
-          className={className}
+          className={`${className} ${onImageClick ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
           onError={() => setHasError(true)}
+          onClick={handleImageClick}
           loading="lazy"
         />
       )}
@@ -127,6 +136,11 @@ function Timeline() {
     image: '',
     isHighlight: false
   });
+
+  // Image zoom modal state
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [modalImageData, setModalImageData] = useState('');
+  const [modalImageTitle, setModalImageTitle] = useState('');
   
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { showSuccess, showError, showInfo } = useNotification();
@@ -265,6 +279,18 @@ function Timeline() {
 
   const closeModal = () => {
     setShowModal(false);
+  };
+
+  const handleImageClick = (imageData: string, title: string) => {
+    setModalImageData(imageData);
+    setModalImageTitle(title);
+    setShowImageModal(true);
+  };
+
+  const closeImageModal = () => {
+    setShowImageModal(false);
+    setModalImageData('');
+    setModalImageTitle('');
   };
 
   const handleSave = async () => {
@@ -414,6 +440,7 @@ function Timeline() {
                             <MinimalTimelineImage
                               event={displayedEvents[activeIndex]}
                               className="w-64 h-64 object-cover rounded-lg shadow-xl border border-purple-500/30"
+                              onImageClick={handleImageClick}
                             />
                           </div>
                         </div>
@@ -501,6 +528,7 @@ function Timeline() {
                                 <MinimalTimelineImage
                                   event={event}
                                   className="w-full h-64 object-cover rounded-lg shadow-xl border border-purple-500/30"
+                                  onImageClick={handleImageClick}
                                 />
                               </div>
                             </div>
@@ -622,6 +650,42 @@ function Timeline() {
                 <Save size={16} className="mr-2" />
                 Save
               </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Image Zoom Modal */}
+      {showImageModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            className="relative max-w-4xl max-h-[90vh] w-full h-full flex items-center justify-center"
+            onClick={closeImageModal}
+          >
+            <div className="relative">
+              <img 
+                src={modalImageData}
+                alt={modalImageTitle}
+                className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              />
+              
+              {/* Close button */}
+              <button
+                onClick={closeImageModal}
+                className="absolute top-4 right-4 p-2 bg-black/50 rounded-full text-white hover:bg-black/70 transition-colors"
+              >
+                <X size={20} />
+              </button>
+              
+              {/* Image title */}
+              <div className="absolute bottom-4 left-4 right-4 bg-black/50 rounded-lg p-3 text-white">
+                <h3 className="font-semibold text-lg">{modalImageTitle}</h3>
+                <p className="text-sm text-gray-300 mt-1">Click anywhere to close</p>
+              </div>
             </div>
           </motion.div>
         </div>
