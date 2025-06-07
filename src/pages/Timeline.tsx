@@ -727,10 +727,10 @@ function Timeline() {
                               : 'bg-gradient-to-br from-purple-900/40 to-pink-900/40 border-purple-500/20'
                           }`}>
                             {event.isHighlight && (
-                              <div className="absolute top-2 left-2 z-20 bg-yellow-900/80 backdrop-blur-sm rounded-full px-3 py-1 border border-yellow-500/50">
-                                <span className="text-yellow-300 text-xs font-medium flex items-center">
-                                  <Sparkles size={14} className="mr-1" />
-                                  Special Memory
+                              <div className="absolute top-2 right-2 z-20 bg-yellow-900/90 backdrop-blur-sm rounded-full px-3 py-1 border border-yellow-500/50 shadow-lg">
+                                <span className="text-yellow-300 text-xs font-semibold flex items-center">
+                                  <Sparkles size={12} className="mr-1" />
+                                  Special
                                 </span>
                               </div>
                             )}
@@ -826,18 +826,18 @@ function Timeline() {
                               : 'bg-gradient-to-br from-purple-900/40 to-pink-900/40 border-purple-500/20'
                           }`}>
                             {event.isHighlight && (
-                              <div className="absolute top-2 left-2 z-20 bg-yellow-900/80 backdrop-blur-sm rounded-full px-3 py-1 border border-yellow-500/50">
-                                <span className="text-yellow-300 text-xs font-medium flex items-center">
-                                  <Sparkles size={14} className="mr-1" />
-                                  Special Memory
+                              <div className="absolute top-2 right-2 z-20 bg-yellow-900/90 backdrop-blur-sm rounded-full px-3 py-1 border border-yellow-500/50 shadow-lg">
+                                <span className="text-yellow-300 text-xs font-semibold flex items-center">
+                                  <Sparkles size={12} className="mr-1" />
+                                  Special
                                 </span>
                               </div>
                             )}
                             
                             {/* Desktop layout: content on left, image on right */}
-                            <div className="flex flex-col lg:flex-row lg:items-start">
+                            <div className="flex flex-col lg:flex-row lg:min-h-[280px]">
                               {/* Left side - Content */}
-                              <div className="flex-1 p-6 space-y-3">
+                              <div className="flex-1 p-6 space-y-3 lg:flex lg:flex-col lg:justify-center">
                                 {event.category && (
                                   <div className="text-blue-300 text-xs uppercase tracking-wide">
                                     {event.category.replace('_', ' ')}
@@ -883,15 +883,13 @@ function Timeline() {
                                 </div>
                               </div>
                               
-                              {/* Right side - Image (centered vertically) */}
-                              <div className="lg:w-80 mt-4 lg:mt-0 flex-shrink-0 lg:flex lg:items-center lg:justify-center lg:min-h-full">
-                                <div className="w-full">
-                                  <TimelineImage 
-                                    event={event} 
-                                    className="w-full h-64 object-cover rounded-lg shadow-xl border border-purple-500/30" 
-                                    onImageClick={openImageModal} 
-                                  />
-                                </div>
+                              {/* Right side - Image (properly centered) */}
+                              <div className="lg:w-80 lg:p-6 lg:flex lg:items-center lg:justify-center">
+                                <TimelineImage 
+                                  event={event} 
+                                  className="w-full h-64 object-cover rounded-lg shadow-xl border border-purple-500/30" 
+                                  onImageClick={openImageModal} 
+                                />
                               </div>
                             </div>
                           </div>
