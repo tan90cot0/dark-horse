@@ -5,8 +5,8 @@ import dataService, { TimelineEvent } from '../utils/dataService';
 import { useNotification } from '../context/NotificationContext';
 import LoadingSpinner from '../components/UI/LoadingSpinner';
 
-// Ultra-minimal Image Component
-const MinimalTimelineImage = ({ 
+// Ultra-minimal Image Component - Memoized for performance
+const MinimalTimelineImage = React.memo(({ 
   event, 
   className,
   onImageClick
@@ -21,17 +21,17 @@ const MinimalTimelineImage = ({
   const [shouldLoad, setShouldLoad] = useState(false);
   const imgRef = useRef<HTMLDivElement>(null);
 
-  // Intersection observer - only load when truly visible
+  // More aggressive intersection observer - only load when really visible
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting && !shouldLoad) {
+          if (entry.isIntersecting && entry.intersectionRatio > 0.5 && !shouldLoad) {
             setShouldLoad(true);
           }
         });
       },
-      { threshold: 0.3, rootMargin: '50px' }
+      { threshold: 0.5, rootMargin: '0px' } // More restrictive loading
     );
 
     if (imgRef.current) {
@@ -112,169 +112,84 @@ const MinimalTimelineImage = ({
       )}
     </div>
   );
-};
+});
 
-// Component to display additional memory fields
-const AdditionalMemoryFields = ({ event }: { event: TimelineEvent }) => {
-  // Define field display configurations for ALL 69 unique fields
-  const fieldConfigs = [
-    // High priority fields (most important - show first)
-    { key: 'significance', label: 'Significance', icon: '⭐', color: 'text-yellow-400 bg-yellow-500/20', priority: 1 },
-    { key: 'location', label: 'Location', icon: '📍', color: 'text-green-400 bg-green-500/20', priority: 1 },
-    { key: 'context', label: 'Context', icon: '🔍', color: 'text-blue-400 bg-blue-500/20', priority: 1 },
-    { key: 'outcome', label: 'Outcome', icon: '🎯', color: 'text-purple-400 bg-purple-500/20', priority: 1 },
-    { key: 'realization', label: 'Realization', icon: '💡', color: 'text-yellow-400 bg-yellow-500/20', priority: 1 },
-    { key: 'gifts', label: 'Gifts', icon: '🎁', color: 'text-pink-400 bg-pink-500/20', priority: 1 },
-    { key: 'gift', label: 'Gift', icon: '🎁', color: 'text-pink-400 bg-pink-500/20', priority: 1 },
-    { key: 'restaurant', label: 'Restaurant', icon: '🍽️', color: 'text-orange-400 bg-orange-500/20', priority: 1 },
-    { key: 'notes', label: 'Notes', icon: '📋', color: 'text-gray-400 bg-gray-500/20', priority: 1 },
-    { key: 'note', label: 'Note', icon: '📝', color: 'text-gray-400 bg-gray-500/20', priority: 1 },
-    
-    // Medium priority fields
-    { key: 'activities', label: 'Activities', icon: '🎯', color: 'text-indigo-400 bg-indigo-500/20', priority: 2 },
-    { key: 'gesture', label: 'Gesture', icon: '🤝', color: 'text-blue-400 bg-blue-500/20', priority: 2 },
-    { key: 'details', label: 'Details', icon: '📄', color: 'text-gray-400 bg-gray-500/20', priority: 2 },
-    { key: 'memorable_event', label: 'Memorable Event', icon: '🌟', color: 'text-yellow-400 bg-yellow-500/20', priority: 2 },
-    { key: 'milestone', label: 'Milestone', icon: '🏁', color: 'text-yellow-400 bg-yellow-500/20', priority: 2 },
-    { key: 'emotional_detail', label: 'Emotional Detail', icon: '💭', color: 'text-purple-400 bg-purple-500/20', priority: 2 },
-    { key: 'favorite_moment', label: 'Favorite Moment', icon: '⭐', color: 'text-yellow-400 bg-yellow-500/20', priority: 2 },
-    { key: 'food', label: 'Food', icon: '🍕', color: 'text-orange-400 bg-orange-500/20', priority: 2 },
-    { key: 'locations', label: 'Locations', icon: '🗺️', color: 'text-green-400 bg-green-500/20', priority: 2 },
-    { key: 'celebration_type', label: 'Celebration Type', icon: '🎉', color: 'text-pink-400 bg-pink-500/20', priority: 2 },
-    
-    // Lower priority fields (show only if expanded)
-    { key: 'adventure', label: 'Adventure', icon: '🏔️', color: 'text-green-400 bg-green-500/20', priority: 3 },
-    { key: 'attempted_dish', label: 'Attempted Dish', icon: '👨‍🍳', color: 'text-orange-400 bg-orange-500/20', priority: 3 },
-    { key: 'benefit', label: 'Benefit', icon: '✅', color: 'text-green-400 bg-green-500/20', priority: 3 },
-    { key: 'budget_notes', label: 'Budget Notes', icon: '💰', color: 'text-yellow-400 bg-yellow-500/20', priority: 3 },
-    { key: 'care', label: 'Care', icon: '💚', color: 'text-green-400 bg-green-500/20', priority: 3 },
-    { key: 'care_actions', label: 'Care Actions', icon: '🤝', color: 'text-blue-400 bg-blue-500/20', priority: 3 },
-    { key: 'comfort_items', label: 'Comfort Items', icon: '🛋️', color: 'text-purple-400 bg-purple-500/20', priority: 3 },
-    { key: 'companions', label: 'Companions', icon: '👥', color: 'text-blue-400 bg-blue-500/20', priority: 3 },
-    { key: 'conflict', label: 'Conflict', icon: '⚔️', color: 'text-red-400 bg-red-500/20', priority: 3 },
-    { key: 'constraint', label: 'Constraint', icon: '⛓️', color: 'text-gray-400 bg-gray-500/20', priority: 3 },
-    { key: 'devotion', label: 'Devotion', icon: '💝', color: 'text-pink-400 bg-pink-500/20', priority: 3 },
-    { key: 'discovery', label: 'Discovery', icon: '🔬', color: 'text-cyan-400 bg-cyan-500/20', priority: 3 },
-    { key: 'doctor_quote', label: 'Doctor Quote', icon: '👨‍⚕️', color: 'text-green-400 bg-green-500/20', priority: 3 },
-    { key: 'eating_pattern', label: 'Eating Pattern', icon: '🍽️', color: 'text-orange-400 bg-orange-500/20', priority: 3 },
-    { key: 'effort', label: 'Effort', icon: '💪', color: 'text-blue-400 bg-blue-500/20', priority: 3 },
-    { key: 'emotional_impact', label: 'Emotional Impact', icon: '💥', color: 'text-red-400 bg-red-500/20', priority: 3 },
-    { key: 'emotional_support', label: 'Emotional Support', icon: '🤗', color: 'text-pink-400 bg-pink-500/20', priority: 3 },
-    { key: 'event', label: 'Event', icon: '📅', color: 'text-blue-400 bg-blue-500/20', priority: 3 },
-    { key: 'famous_quote', label: 'Famous Quote', icon: '💬', color: 'text-yellow-400 bg-yellow-500/20', priority: 3 },
-    { key: 'festival', label: 'Festival', icon: '🎊', color: 'text-pink-400 bg-pink-500/20', priority: 3 },
-    { key: 'first_experience', label: 'First Experience', icon: '🥇', color: 'text-gold-400 bg-yellow-500/20', priority: 3 },
-    { key: 'firsts', label: 'Firsts', icon: '🏆', color: 'text-gold-400 bg-yellow-500/20', priority: 3 },
-    { key: 'flex', label: 'Flex', icon: '💫', color: 'text-purple-400 bg-purple-500/20', priority: 3 },
-    { key: 'food_choice', label: 'Food Choice', icon: '🍴', color: 'text-orange-400 bg-orange-500/20', priority: 3 },
-    { key: 'incident', label: 'Incident', icon: '⚠️', color: 'text-red-400 bg-red-500/20', priority: 3 },
-    { key: 'ingredients', label: 'Ingredients', icon: '🧄', color: 'text-green-400 bg-green-500/20', priority: 3 },
-    { key: 'initial_feeling', label: 'Initial Feeling', icon: '💫', color: 'text-purple-400 bg-purple-500/20', priority: 3 },
-    { key: 'logistics', label: 'Logistics', icon: '📋', color: 'text-gray-400 bg-gray-500/20', priority: 3 },
-    { key: 'medical_concern', label: 'Medical Concern', icon: '🏥', color: 'text-red-400 bg-red-500/20', priority: 3 },
-    { key: 'medical_details', label: 'Medical Details', icon: '👨‍⚕️', color: 'text-green-400 bg-green-500/20', priority: 3 },
-    { key: 'memorable_incident', label: 'Memorable Incident', icon: '💭', color: 'text-purple-400 bg-purple-500/20', priority: 3 },
-    { key: 'memorable_items', label: 'Memorable Items', icon: '🏺', color: 'text-brown-400 bg-amber-500/20', priority: 3 },
-    { key: 'memorable_quote', label: 'Memorable Quote', icon: '💬', color: 'text-yellow-400 bg-yellow-500/20', priority: 3 },
-    { key: 'method', label: 'Method', icon: '⚙️', color: 'text-gray-400 bg-gray-500/20', priority: 3 },
-    { key: 'observation', label: 'Observation', icon: '👁️', color: 'text-cyan-400 bg-cyan-500/20', priority: 3 },
-    { key: 'occasion', label: 'Occasion', icon: '🎪', color: 'text-pink-400 bg-pink-500/20', priority: 3 },
-    { key: 'order', label: 'Order', icon: '📋', color: 'text-gray-400 bg-gray-500/20', priority: 3 },
-    { key: 'organization', label: 'Organization', icon: '🏢', color: 'text-blue-400 bg-blue-500/20', priority: 3 },
-    { key: 'outlet', label: 'Outlet', icon: '🚪', color: 'text-gray-400 bg-gray-500/20', priority: 3 },
-    { key: 'pattern', label: 'Pattern', icon: '🔄', color: 'text-blue-400 bg-blue-500/20', priority: 3 },
-    { key: 'promise', label: 'Promise', icon: '🤝', color: 'text-pink-400 bg-pink-500/20', priority: 3 },
-    { key: 'regret', label: 'Regret', icon: '😔', color: 'text-red-400 bg-red-500/20', priority: 3 },
-    { key: 'response', label: 'Response', icon: '💬', color: 'text-blue-400 bg-blue-500/20', priority: 3 },
-    { key: 'restaurants', label: 'Restaurants', icon: '🏪', color: 'text-orange-400 bg-orange-500/20', priority: 3 },
-    { key: 'role', label: 'Role', icon: '👤', color: 'text-blue-400 bg-blue-500/20', priority: 3 },
-    { key: 'saved_message', label: 'Saved Message', icon: '💌', color: 'text-pink-400 bg-pink-500/20', priority: 3 },
-    { key: 'separation_duration', label: 'Separation Duration', icon: '⏰', color: 'text-red-400 bg-red-500/20', priority: 3 },
-    { key: 'song', label: 'Song', icon: '🎵', color: 'text-purple-400 bg-purple-500/20', priority: 3 },
-    { key: 'song_type', label: 'Song Type', icon: '🎶', color: 'text-purple-400 bg-purple-500/20', priority: 3 },
-    { key: 'special_quotes', label: 'Special Quotes', icon: '💭', color: 'text-yellow-400 bg-yellow-500/20', priority: 3 },
-    { key: 'strategy', label: 'Strategy', icon: '🧠', color: 'text-blue-400 bg-blue-500/20', priority: 3 },
-    { key: 'successful_dish', label: 'Successful Dish', icon: '👨‍🍳', color: 'text-green-400 bg-green-500/20', priority: 3 },
-    { key: 'surprise_element', label: 'Surprise Element', icon: '🎉', color: 'text-pink-400 bg-pink-500/20', priority: 3 },
-    { key: 'telegram_detail', label: 'Telegram Detail', icon: '📱', color: 'text-blue-400 bg-blue-500/20', priority: 3 },
-    { key: 'time', label: 'Time', icon: '🕐', color: 'text-gray-400 bg-gray-500/20', priority: 3 },
-    { key: 'timing', label: 'Timing', icon: '⏱️', color: 'text-gray-400 bg-gray-500/20', priority: 3 },
-    { key: 'trigger', label: 'Trigger', icon: '⚡', color: 'text-red-400 bg-red-500/20', priority: 3 },
-    { key: 'unique_elements', label: 'Unique Elements', icon: '✨', color: 'text-purple-400 bg-purple-500/20', priority: 3 },
-    { key: 'witnesses', label: 'Witnesses', icon: '👥', color: 'text-blue-400 bg-blue-500/20', priority: 3 },
+// Component to display additional memory fields - Memoized for performance
+const AdditionalMemoryFields = React.memo(({ event }: { event: TimelineEvent }) => {
+  // Only show the most essential fields initially to prevent performance issues
+  const essentialFields = [
+    { key: 'significance', label: 'Significance', icon: '⭐', color: 'text-yellow-400 bg-yellow-500/20' },
+    { key: 'location', label: 'Location', icon: '📍', color: 'text-green-400 bg-green-500/20' },
+    { key: 'restaurant', label: 'Restaurant', icon: '🍽️', color: 'text-orange-400 bg-orange-500/20' },
+    { key: 'notes', label: 'Notes', icon: '📋', color: 'text-gray-400 bg-gray-500/20' },
+    { key: 'note', label: 'Note', icon: '📝', color: 'text-gray-400 bg-gray-500/20' }
   ];
 
   const [showAllFields, setShowAllFields] = useState(false);
 
-  // Performance optimization: limit initial fields shown
-  try {
-    const allFields = fieldConfigs.filter(config => {
-      const value = event[config.key];
-      return value && value !== '' && (Array.isArray(value) ? value.length > 0 : true);
-    });
+  // Show only essential fields initially
+  const fieldsToShow = showAllFields ? 
+    // If expanded, show more fields but still limited
+    [
+      ...essentialFields,
+      { key: 'context', label: 'Context', icon: '🔍', color: 'text-blue-400 bg-blue-500/20' },
+      { key: 'outcome', label: 'Outcome', icon: '🎯', color: 'text-purple-400 bg-purple-500/20' },
+      { key: 'realization', label: 'Realization', icon: '💡', color: 'text-yellow-400 bg-yellow-500/20' },
+      { key: 'gifts', label: 'Gifts', icon: '🎁', color: 'text-pink-400 bg-pink-500/20' },
+      { key: 'activities', label: 'Activities', icon: '🎯', color: 'text-indigo-400 bg-indigo-500/20' }
+    ] : 
+    essentialFields;
 
-    // Show high priority fields first, then medium priority if not too many
-    const highPriorityFields = allFields.filter(f => f.priority === 1);
-    const mediumPriorityFields = allFields.filter(f => f.priority === 2);
-    const lowPriorityFields = allFields.filter(f => f.priority === 3);
+  // Filter to only show fields that have values
+  const fieldsWithValues = fieldsToShow.filter(config => {
+    const value = event[config.key];
+    return value && value !== '' && (Array.isArray(value) ? value.length > 0 : true);
+  });
 
-    // Limit fields to prevent performance issues
-    const fieldsToShow = showAllFields 
-      ? [...highPriorityFields, ...mediumPriorityFields.slice(0, 5), ...lowPriorityFields.slice(0, 10)]
-      : [...highPriorityFields, ...mediumPriorityFields.slice(0, 3)];
+  if (fieldsWithValues.length === 0) return null;
 
-    if (fieldsToShow.length === 0) return null;
+  const hasMoreFields = showAllFields ? false : (
+    essentialFields.some(field => {
+      const value = event[field.key];
+      return value && value !== '';
+    }) && Object.keys(event).length > 10 // Rough estimate of more fields
+  );
 
-    const hasMoreFields = allFields.length > fieldsToShow.length;
-
-    return (
-      <div className="mt-4 space-y-2">
-        {fieldsToShow.map(config => {
-          try {
-            const value = event[config.key];
-            const displayValue = Array.isArray(value) ? value.join(', ') : value;
-            
-            // Truncate very long values to prevent layout issues
-            const truncatedValue = displayValue && displayValue.length > 200 
-              ? displayValue.substring(0, 200) + '...' 
-              : displayValue;
-            
-            return (
-              <div key={config.key} className="flex items-start space-x-2">
-                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${config.color}`}>
-                  <span className="mr-1">{config.icon}</span>
-                  {config.label}
-                </span>
-                <span className="text-white/70 text-xs flex-1 leading-relaxed">
-                  {truncatedValue}
-                </span>
-              </div>
-            );
-          } catch (error) {
-            console.error('Error rendering field:', config.key, error);
-            return null;
-          }
-        })}
+  return (
+    <div className="mt-4 space-y-2">
+      {fieldsWithValues.map(config => {
+        const value = event[config.key];
+        const displayValue = Array.isArray(value) ? value.join(', ') : value;
         
-        {hasMoreFields && (
-          <button
-            onClick={() => setShowAllFields(!showAllFields)}
-            className="text-xs text-purple-400 hover:text-purple-300 transition-colors mt-2"
-          >
-            {showAllFields ? 'Show Less' : `Show ${allFields.length - fieldsToShow.length} More Fields`}
-          </button>
-        )}
-      </div>
-    );
-  } catch (error) {
-    console.error('Error in AdditionalMemoryFields:', error);
-    return (
-      <div className="mt-4 text-red-400 text-xs">
-        Error loading additional fields
-      </div>
-    );
-  }
-};
+        // Truncate long values more aggressively
+        const truncatedValue = displayValue && displayValue.length > 100 
+          ? displayValue.substring(0, 100) + '...' 
+          : displayValue;
+        
+        return (
+          <div key={config.key} className="flex items-start space-x-2">
+            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${config.color}`}>
+              <span className="mr-1">{config.icon}</span>
+              {config.label}
+            </span>
+            <span className="text-white/70 text-xs flex-1 leading-relaxed">
+              {truncatedValue}
+            </span>
+          </div>
+        );
+      })}
+      
+      {hasMoreFields && (
+        <button
+          onClick={() => setShowAllFields(!showAllFields)}
+          className="text-xs text-purple-400 hover:text-purple-300 transition-colors mt-2"
+        >
+          {showAllFields ? 'Show Less' : 'Show More Fields'}
+        </button>
+      )}
+    </div>
+  );
+});
 
 function Timeline() {
   const [displayedEvents, setDisplayedEvents] = useState<TimelineEvent[]>([]);
@@ -388,7 +303,7 @@ function Timeline() {
           clearTimeout(timeoutId);
           timeoutId = setTimeout(() => {
             loadNextPage();
-          }, 500); // 500ms delay
+          }, 1000); // 1000ms delay
         }
       },
       { threshold: 0.1, rootMargin: '200px' } // Increased rootMargin for better UX
@@ -581,6 +496,14 @@ function Timeline() {
     return () => {
       window.removeEventListener('error', handleError);
       window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
+  }, []);
+
+  // Cleanup effect to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      // Clear data service cache when component unmounts
+      dataService.clearCache();
     };
   }, []);
 

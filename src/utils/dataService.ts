@@ -208,8 +208,8 @@ class DataService {
   private singleImageCache: Map<string, string> = new Map();
   private activeRequests: Set<string> = new Set();
 
-  // Page size for incremental loading
-  private readonly PAGE_SIZE = 2;
+  // Page size for incremental loading - reduced to 1 for maximum performance
+  private readonly PAGE_SIZE = 1;
 
   // Load only essential metadata first (no content)
   async loadMemoryMetadata(): Promise<{ total: number; pages: number }> {
