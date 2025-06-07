@@ -1031,18 +1031,37 @@ function Timeline() {
                     </div>
                   )}
                   {formData.image && !uploadingImage && (
-                    <div className="relative">
+                    <div className="relative group">
                       <img
-                        src={formData.image}
-                        alt="Preview"
-                        className="w-full h-32 object-cover rounded-lg"
+                        src={formData.image.startsWith('data:image') ? formData.image : `data:image/jpeg;base64,${formData.image}`}
+                        alt="Image preview"
+                        className="w-full h-32 object-cover rounded-lg border border-white/20 shadow-md"
+                        onError={(e) => {
+                          console.error('Image preview failed to load');
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          // Show fallback
+                          const fallback = target.nextElementSibling?.nextElementSibling as HTMLElement;
+                          if (fallback) fallback.style.display = 'flex';
+                        }}
                       />
                       <button
                         onClick={() => setFormData(prev => ({ ...prev, image: '' }))}
-                        className="absolute top-2 right-2 p-1 bg-red-600 rounded-full hover:bg-red-700 transition-colors"
+                        className="absolute top-2 right-2 p-1.5 bg-red-600/90 backdrop-blur-sm rounded-full hover:bg-red-700/90 transition-all duration-200 shadow-lg opacity-0 group-hover:opacity-100"
+                        title="Remove image"
                       >
-                        <X size={16} />
+                        <X size={14} className="text-white" />
                       </button>
+                      {/* Fallback UI for broken images */}
+                      <div 
+                        className="absolute inset-0 bg-gradient-to-br from-gray-700 to-gray-800 rounded-lg border border-white/20 flex items-center justify-center"
+                        style={{ display: 'none' }}
+                      >
+                        <div className="text-center text-gray-400">
+                          <ImageIcon size={24} className="mx-auto mb-1" />
+                          <p className="text-xs">Image available</p>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -1179,18 +1198,37 @@ function Timeline() {
                     </div>
                   )}
                   {formData.image && !uploadingImage && (
-                    <div className="relative">
+                    <div className="relative group">
                       <img
-                        src={formData.image}
-                        alt="Preview"
-                        className="w-full h-32 object-cover rounded-lg"
+                        src={formData.image.startsWith('data:image') ? formData.image : `data:image/jpeg;base64,${formData.image}`}
+                        alt="Image preview"
+                        className="w-full h-32 object-cover rounded-lg border border-white/20 shadow-md"
+                        onError={(e) => {
+                          console.error('Image preview failed to load');
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          // Show fallback
+                          const fallback = target.nextElementSibling?.nextElementSibling as HTMLElement;
+                          if (fallback) fallback.style.display = 'flex';
+                        }}
                       />
                       <button
                         onClick={() => setFormData(prev => ({ ...prev, image: '' }))}
-                        className="absolute top-2 right-2 p-1 bg-red-600 rounded-full hover:bg-red-700 transition-colors"
+                        className="absolute top-2 right-2 p-1.5 bg-red-600/90 backdrop-blur-sm rounded-full hover:bg-red-700/90 transition-all duration-200 shadow-lg opacity-0 group-hover:opacity-100"
+                        title="Remove image"
                       >
-                        <X size={16} />
+                        <X size={14} className="text-white" />
                       </button>
+                      {/* Fallback UI for broken images */}
+                      <div 
+                        className="absolute inset-0 bg-gradient-to-br from-gray-700 to-gray-800 rounded-lg border border-white/20 flex items-center justify-center"
+                        style={{ display: 'none' }}
+                      >
+                        <div className="text-center text-gray-400">
+                          <ImageIcon size={24} className="mx-auto mb-1" />
+                          <p className="text-xs">Image available</p>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
