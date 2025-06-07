@@ -205,7 +205,6 @@ const AdditionalMemoryFields = ({ event }: { event: TimelineEvent }) => {
   ];
 
   const [showAllFields, setShowAllFields] = useState(false);
-  const [renderError, setRenderError] = useState<string | null>(null);
 
   // Performance optimization: limit initial fields shown
   try {
@@ -265,17 +264,10 @@ const AdditionalMemoryFields = ({ event }: { event: TimelineEvent }) => {
             {showAllFields ? 'Show Less' : `Show ${allFields.length - fieldsToShow.length} More Fields`}
           </button>
         )}
-        
-        {renderError && (
-          <div className="text-red-400 text-xs mt-2">
-            Error displaying some fields: {renderError}
-          </div>
-        )}
       </div>
     );
   } catch (error) {
     console.error('Error in AdditionalMemoryFields:', error);
-    setRenderError(error instanceof Error ? error.message : 'Unknown error');
     return (
       <div className="mt-4 text-red-400 text-xs">
         Error loading additional fields
