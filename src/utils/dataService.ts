@@ -182,15 +182,11 @@ class DataService {
   async loadImageForEvent(event: TimelineEvent): Promise<string> {
     const cacheKey = `image_${event.id}`;
     
-    console.log(`🖼️ [Image Load] Starting load for event ID: ${event.id}, title: "${event.title}"`);
-    
     if (this.singleImageCache.has(cacheKey)) {
-      console.log(`✅ [Image Load] Found in cache for event ${event.id}`);
       return this.singleImageCache.get(cacheKey)!;
     }
 
     if (this.activeRequests.has(cacheKey)) {
-      console.log(`⏳ [Image Load] Request already active for event ${event.id}, waiting...`);
       // Wait for existing request
       return new Promise((resolve) => {
         const checkCache = () => {
@@ -210,34 +206,31 @@ class DataService {
 
     try {
       const memoryId = parseInt(event.id);
-      console.log(`🔍 [Image Load] Looking for memory ID: ${memoryId} from event: ${event.title}`);
+      console.log(`Loading image for memory ${memoryId}: "${event.title}"`);
       
       const metadataMap = await this.loadImageMetadata();
-      console.log(`📋 [Image Load] Loaded metadata map with ${metadataMap.size} entries`);
-      
       const imageId = metadataMap.get(memoryId);
-      console.log(`🎯 [Image Load] Memory ID ${memoryId} -> Image ID: ${imageId || 'NOT FOUND'}`);
 
       if (!imageId) {
-        console.warn(`❌ [Image Load] No image mapping found for memory ID: ${memoryId}`);
+        console.warn(`No image mapping found for memory ID: ${memoryId}`);
         return '';
       }
 
-      console.log(`📸 [Image Load] Loading image data for image ID: ${imageId}`);
+      console.log(`Memory ${memoryId} -> Image ${imageId}`);
       
       // Load the image data using the correct imageId
       const imageData = await this.loadSingleImageSmart(imageId);
       
       if (imageData) {
         this.singleImageCache.set(cacheKey, imageData);
-        console.log(`✅ [Image Load] Successfully cached image for event: ${event.title} (${imageData.length} chars)`);
+        console.log(`✅ Image loaded for: ${event.title}`);
       } else {
-        console.error(`❌ [Image Load] Failed to load image data for image ID: ${imageId}`);
+        console.error(`❌ Failed to load image for: ${event.title}`);
       }
       
       return imageData;
     } catch (error) {
-      console.error(`💥 [Image Load] Error loading image for event ${event.id}:`, error);
+      console.error(`💥 Error loading image for event ${event.id}:`, error);
       return '';
     } finally {
       this.activeRequests.delete(cacheKey);
@@ -247,47 +240,43 @@ class DataService {
   // Smart single image loading - avoid loading entire file
   private async loadSingleImageSmart(imageId: string): Promise<string> {
     try {
-      console.log(`🔄 [Smart Load] Loading image ${imageId} from timeline_images.json...`);
+      console.log(`Loading image ${imageId}...`);
       
       const response = await fetch('/data/timeline_images.json');
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       
-      console.log(`📥 [Smart Load] Successfully fetched timeline_images.json`);
-      
-      // For now, load the whole file but optimize later
       const imageArray = await response.json();
-      console.log(`📦 [Smart Load] Parsed JSON with ${imageArray.length} images`);
       
-      // Find the image by ID (note: imageId from metadata, but timeline_images uses 'id')
-      // We need to find the matching image 
+      // Find the image by ID
       const imageItem = imageArray.find((item: any) => {
-        // Try different ways to match
         return item.id === imageId || 
                item.id === parseInt(imageId) || 
                item.id === imageId.toString();
       });
       
       if (imageItem && imageItem.image) {
-        console.log(`✅ [Smart Load] Found image ${imageId} in timeline_images.json (${imageItem.image.length} chars)`);
-        // Check if image data is valid base64
-        if (imageItem.image.startsWith('data:image/') || imageItem.image.startsWith('/9j/') || imageItem.image.startsWith('iVBOR')) {
-          console.log(`📸 [Smart Load] Image ${imageId} has valid format`);
-          return imageItem.image;
-        } else {
-          console.warn(`⚠️ [Smart Load] Image ${imageId} has invalid format: ${imageItem.image.substring(0, 50)}...`);
-          return '';
+        let imageData = imageItem.image;
+        
+        // Fix double data URL prefix issue
+        if (imageData.startsWith('data:image/') && imageData.includes(';base64,data:image/')) {
+          console.log(`Fixing double data URL prefix for image ${imageId}`);
+          imageData = imageData.replace(/^data:image\/[^;]+;base64,data:image\/[^;]+;base64,/, 'data:image/jpeg;base64,');
         }
+        
+        // Ensure proper data URL format
+        if (!imageData.startsWith('data:image/') && (imageData.startsWith('/9j/') || imageData.startsWith('iVBOR'))) {
+          imageData = `data:image/jpeg;base64,${imageData}`;
+        }
+        
+        console.log(`✅ Successfully loaded image ${imageId}`);
+        return imageData;
       } else {
-        console.error(`❌ [Smart Load] Image ${imageId} not found in timeline_images.json`);
-        // Debug: show what IDs are available
-        const availableIds = imageArray.map((item: any) => item.id).slice(0, 10);
-        console.log(`🔍 [Smart Load] Available image IDs (first 10):`, availableIds);
-        console.log(`🔍 [Smart Load] Looking for imageId: "${imageId}" (type: ${typeof imageId})`);
+        console.error(`❌ Image ${imageId} not found in timeline_images.json`);
         return '';
       }
       
     } catch (error) {
-      console.error(`💥 [Smart Load] Error loading single image ${imageId}:`, error);
+      console.error(`💥 Error loading image ${imageId}:`, error);
       return '';
     }
   }
