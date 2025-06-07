@@ -16,20 +16,86 @@ export interface TimelineEvent {
   category?: string;
   emotions?: string[];
   images?: string[];
-  // Additional fields from diary.json
-  significance?: string;
-  location?: string;
+  // ALL additional fields from diary.json analysis
+  activities?: string[] | string;
+  adventure?: string;
+  attempted_dish?: string;
+  benefit?: string;
+  budget_notes?: string;
+  care?: string;
+  care_actions?: string[] | string;
+  celebration_type?: string;
+  comfort_items?: string[] | string;
+  companions?: string[] | string;
+  conflict?: string;
+  constraint?: string;
   context?: string;
-  outcome?: string;
+  details?: string;
+  devotion?: string;
+  discovery?: string;
+  doctor_quote?: string;
+  eating_pattern?: string;
+  effort?: string;
+  emotional_detail?: string;
+  emotional_impact?: string;
+  emotional_support?: string;
+  event?: string;
+  famous_quote?: string;
+  favorite_moment?: string;
+  festival?: string;
+  first_experience?: string;
+  firsts?: string[] | string;
+  flex?: string;
+  food?: string;
+  food_choice?: string;
+  gesture?: string;
+  gift?: string;
+  gifts?: string;
+  incident?: string;
+  ingredients?: string[] | string;
+  initial_feeling?: string;
+  location?: string;
+  locations?: string[] | string;
+  logistics?: string;
+  medical_concern?: string;
+  medical_details?: string;
+  memorable_event?: string;
+  memorable_incident?: string;
+  memorable_items?: string[] | string;
+  memorable_quote?: string;
+  method?: string;
+  milestone?: string;
   note?: string;
   notes?: string;
-  restaurant?: string;
+  observation?: string;
+  occasion?: string;
+  order?: string;
+  organization?: string;
+  outcome?: string;
+  outlet?: string;
+  pattern?: string;
+  promise?: string;
   realization?: string;
-  gifts?: string;
-  gift?: string;
-  gesture?: string;
-  details?: string;
-  activities?: string[];
+  regret?: string;
+  response?: string;
+  restaurant?: string;
+  restaurants?: string[] | string;
+  role?: string;
+  saved_message?: string;
+  separation_duration?: string;
+  significance?: string;
+  song?: string;
+  song_type?: string;
+  special_quotes?: string[] | string;
+  strategy?: string;
+  successful_dish?: string;
+  surprise_element?: string;
+  telegram_detail?: string;
+  time?: string;
+  timing?: string;
+  trigger?: string;
+  unique_elements?: string[] | string;
+  witnesses?: string[] | string;
   [key: string]: any; // For any other dynamic fields
 }
 
@@ -50,19 +116,86 @@ interface DiaryMemory {
   content: string;
   emotions?: string[];
   images?: string[];
-  significance?: string;
-  location?: string;
+  // ALL additional fields from diary.json analysis
+  activities?: string[] | string;
+  adventure?: string;
+  attempted_dish?: string;
+  benefit?: string;
+  budget_notes?: string;
+  care?: string;
+  care_actions?: string[] | string;
+  celebration_type?: string;
+  comfort_items?: string[] | string;
+  companions?: string[] | string;
+  conflict?: string;
+  constraint?: string;
   context?: string;
-  outcome?: string;
+  details?: string;
+  devotion?: string;
+  discovery?: string;
+  doctor_quote?: string;
+  eating_pattern?: string;
+  effort?: string;
+  emotional_detail?: string;
+  emotional_impact?: string;
+  emotional_support?: string;
+  event?: string;
+  famous_quote?: string;
+  favorite_moment?: string;
+  festival?: string;
+  first_experience?: string;
+  firsts?: string[] | string;
+  flex?: string;
+  food?: string;
+  food_choice?: string;
+  gesture?: string;
+  gift?: string;
+  gifts?: string;
+  incident?: string;
+  ingredients?: string[] | string;
+  initial_feeling?: string;
+  location?: string;
+  locations?: string[] | string;
+  logistics?: string;
+  medical_concern?: string;
+  medical_details?: string;
+  memorable_event?: string;
+  memorable_incident?: string;
+  memorable_items?: string[] | string;
+  memorable_quote?: string;
+  method?: string;
+  milestone?: string;
   note?: string;
   notes?: string;
-  restaurant?: string;
+  observation?: string;
+  occasion?: string;
+  order?: string;
+  organization?: string;
+  outcome?: string;
+  outlet?: string;
+  pattern?: string;
+  promise?: string;
   realization?: string;
-  gifts?: string;
-  gift?: string;
-  gesture?: string;
-  details?: string;
-  activities?: string[];
+  regret?: string;
+  response?: string;
+  restaurant?: string;
+  restaurants?: string[] | string;
+  role?: string;
+  saved_message?: string;
+  separation_duration?: string;
+  significance?: string;
+  song?: string;
+  song_type?: string;
+  special_quotes?: string[] | string;
+  strategy?: string;
+  successful_dish?: string;
+  surprise_element?: string;
+  telegram_detail?: string;
+  time?: string;
+  timing?: string;
+  trigger?: string;
+  unique_elements?: string[] | string;
+  witnesses?: string[] | string;
   isHighlight?: boolean;
   [key: string]: any; // For any other dynamic fields
 }
@@ -150,19 +283,86 @@ class DataService {
       category: memory.category,
       emotions: memory.emotions,
       images: memory.images,
-      significance: memory.significance,
-      location: memory.location,
+      // Map ALL additional fields from diary.json
+      activities: memory.activities,
+      adventure: memory.adventure,
+      attempted_dish: memory.attempted_dish,
+      benefit: memory.benefit,
+      budget_notes: memory.budget_notes,
+      care: memory.care,
+      care_actions: memory.care_actions,
+      celebration_type: memory.celebration_type,
+      comfort_items: memory.comfort_items,
+      companions: memory.companions,
+      conflict: memory.conflict,
+      constraint: memory.constraint,
       context: memory.context,
-      outcome: memory.outcome,
+      details: memory.details,
+      devotion: memory.devotion,
+      discovery: memory.discovery,
+      doctor_quote: memory.doctor_quote,
+      eating_pattern: memory.eating_pattern,
+      effort: memory.effort,
+      emotional_detail: memory.emotional_detail,
+      emotional_impact: memory.emotional_impact,
+      emotional_support: memory.emotional_support,
+      event: memory.event,
+      famous_quote: memory.famous_quote,
+      favorite_moment: memory.favorite_moment,
+      festival: memory.festival,
+      first_experience: memory.first_experience,
+      firsts: memory.firsts,
+      flex: memory.flex,
+      food: memory.food,
+      food_choice: memory.food_choice,
+      gesture: memory.gesture,
+      gift: memory.gift,
+      gifts: memory.gifts,
+      incident: memory.incident,
+      ingredients: memory.ingredients,
+      initial_feeling: memory.initial_feeling,
+      location: memory.location,
+      locations: memory.locations,
+      logistics: memory.logistics,
+      medical_concern: memory.medical_concern,
+      medical_details: memory.medical_details,
+      memorable_event: memory.memorable_event,
+      memorable_incident: memory.memorable_incident,
+      memorable_items: memory.memorable_items,
+      memorable_quote: memory.memorable_quote,
+      method: memory.method,
+      milestone: memory.milestone,
       note: memory.note,
       notes: memory.notes,
-      restaurant: memory.restaurant,
+      observation: memory.observation,
+      occasion: memory.occasion,
+      order: memory.order,
+      organization: memory.organization,
+      outcome: memory.outcome,
+      outlet: memory.outlet,
+      pattern: memory.pattern,
+      promise: memory.promise,
       realization: memory.realization,
-      gifts: memory.gifts,
-      gift: memory.gift,
-      gesture: memory.gesture,
-      details: memory.details,
-      activities: memory.activities
+      regret: memory.regret,
+      response: memory.response,
+      restaurant: memory.restaurant,
+      restaurants: memory.restaurants,
+      role: memory.role,
+      saved_message: memory.saved_message,
+      separation_duration: memory.separation_duration,
+      significance: memory.significance,
+      song: memory.song,
+      song_type: memory.song_type,
+      special_quotes: memory.special_quotes,
+      strategy: memory.strategy,
+      successful_dish: memory.successful_dish,
+      surprise_element: memory.surprise_element,
+      telegram_detail: memory.telegram_detail,
+      time: memory.time,
+      timing: memory.timing,
+      trigger: memory.trigger,
+      unique_elements: memory.unique_elements,
+      witnesses: memory.witnesses
     };
   }
 
