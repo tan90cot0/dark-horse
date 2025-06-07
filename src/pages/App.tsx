@@ -6,6 +6,7 @@ import Timeline from './Timeline';
 import Map from './Map';
 import NoticeBoard from './NoticeBoard';
 import Chat from './Chat';
+import Surprise from './Surprise';
 import { ChatProvider } from '../context/ChatContext';
 import { NotificationProvider } from '../context/NotificationContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -90,6 +91,7 @@ function App() {
                 <Route path="/timeline" element={<Timeline />} />
                 <Route path="/map" element={<Map />} />
                 <Route path="/notice-board" element={<NoticeBoard />} />
+                <Route path="/surprise" element={<Surprise />} />
                 <Route path="/chat/:persona" element={<Chat />} />
               </Routes>
             </div>
