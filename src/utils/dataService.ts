@@ -13,6 +13,9 @@ export interface TimelineEvent {
   image: string;
   isHighlight?: boolean;
   imageLoaded?: boolean;
+  category?: string;
+  emotions?: string[];
+  images?: string[];
 }
 
 export interface Announcement {
@@ -30,6 +33,8 @@ interface DiaryMemory {
   date: string | null;
   category: string;
   content: string;
+  emotions?: string[];
+  images?: string[];
   significance?: string;
   isHighlight?: boolean;
 }
@@ -113,7 +118,10 @@ class DataService {
                    memory.significance?.includes('first_i_love_you') ||
                    memory.significance?.includes('first_in_person') ||
                    memory.significance?.includes('formal_proposal'),
-      imageLoaded: false
+      imageLoaded: false,
+      category: memory.category,
+      emotions: memory.emotions,
+      images: memory.images
     };
   }
 

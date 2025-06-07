@@ -134,13 +134,19 @@ function Timeline() {
     description: '',
     date: '',
     image: '',
-    isHighlight: false
+    isHighlight: false,
+    category: '',
+    emotions: [] as string[]
   });
 
   // Image zoom modal state
   const [showImageModal, setShowImageModal] = useState(false);
   const [modalImageData, setModalImageData] = useState('');
   const [modalImageTitle, setModalImageTitle] = useState('');
+  
+  // Edit functionality state
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<TimelineEvent | null>(null);
   
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { showSuccess, showError, showInfo } = useNotification();
@@ -172,9 +178,6 @@ function Timeline() {
       
       if (result.events.length === 0) {
         showInfo('Timeline is empty', 'Start adding your memories!');
-      } else {
-        // Show actual loaded count, not total
-        showSuccess('Page loaded!', `Showing ${result.events.length} memories (${result.total} total available)`);
       }
     } catch (error) {
       console.error('Error loading initial page:', error);
@@ -272,7 +275,9 @@ function Timeline() {
       description: '',
       date: new Date().toISOString().split('T')[0],
       image: '',
-      isHighlight: false
+      isHighlight: false,
+      category: '',
+      emotions: []
     });
     setShowModal(true);
   };
@@ -293,6 +298,34 @@ function Timeline() {
     setModalImageTitle('');
   };
 
+  const openEditModal = (event: TimelineEvent) => {
+    setEditingEvent(event);
+    setFormData({
+      title: event.title,
+      description: event.description,
+      date: event.date,
+      image: event.image,
+      isHighlight: event.isHighlight || false,
+      category: event.category || '',
+      emotions: event.emotions || []
+    });
+    setShowEditModal(true);
+  };
+
+  const closeEditModal = () => {
+    setShowEditModal(false);
+    setEditingEvent(null);
+    setFormData({
+      title: '',
+      description: '',
+      date: '',
+      image: '',
+      isHighlight: false,
+      category: '',
+      emotions: []
+    });
+  };
+
   const handleSave = async () => {
     if (!formData.title.trim()) {
       showError('Title required', 'Please enter a title for your memory.');
@@ -300,15 +333,62 @@ function Timeline() {
     }
 
     try {
-      const newEvent = await dataService.addTimelineEvent(formData);
-      setDisplayedEvents(prev => [newEvent, ...prev]);
-      showSuccess('Memory added!', 'Your new memory has been added.');
-      closeModal();
+      if (editingEvent) {
+        // Update existing event
+        const updatedEvent = { ...editingEvent, ...formData };
+        setDisplayedEvents(prev => 
+          prev.map(event => event.id === editingEvent.id ? updatedEvent : event)
+            .sort((a, b) => {
+              if (!a.date && !b.date) return 0;
+              if (!a.date) return 1;
+              if (!b.date) return -1;
+              return new Date(a.date).getTime() - new Date(b.date).getTime();
+            })
+        );
+        showSuccess('Memory updated!', 'Your memory has been updated.');
+        closeEditModal();
+      } else {
+        // Add new event
+        const newEvent = await dataService.addTimelineEvent(formData);
+        setDisplayedEvents(prev => [newEvent, ...prev]);
+        showSuccess('Memory added!', 'Your new memory has been added.');
+        closeModal();
+      }
     } catch (error) {
       console.error('Error saving event:', error);
       showError('Save failed', 'Could not save your memory. Please try again.');
     }
   };
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setFormData(prev => ({ ...prev, image: result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Escape key handling
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        if (showImageModal) {
+          closeImageModal();
+        } else if (showModal) {
+          closeModal();
+        } else if (showEditModal) {
+          closeEditModal();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [showImageModal, showModal, showEditModal]);
 
   if (isInitialLoading) {
     return (
@@ -359,11 +439,8 @@ function Timeline() {
             </motion.div>
             
             <h1 className="text-5xl font-bold mb-4 gradient-text">Timeline of Love</h1>
-            <p className="text-gray-300 max-w-xl mx-auto mb-4">
+            <p className="text-gray-300 max-w-xl mx-auto mb-8">
               A beautiful chronological journey through our cherished memories.
-            </p>
-            <p className="text-gray-400 text-sm mb-8">
-              {displayedEvents.length} of {totalMemories} memories loaded
             </p>
             
             <button
@@ -410,22 +487,50 @@ function Timeline() {
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
                         transition={{ duration: 0.3 }}
-                        className="px-6 py-8 bg-gradient-to-br from-purple-900/30 to-pink-900/30 rounded-xl border border-purple-500/20 min-h-[500px] relative"
+                        className={`px-6 py-8 rounded-xl border min-h-[500px] relative ${
+                          displayedEvents[activeIndex].isHighlight 
+                            ? 'bg-gradient-to-br from-yellow-900/40 to-orange-900/40 border-yellow-500/30' 
+                            : 'bg-gradient-to-br from-purple-900/30 to-pink-900/30 border-purple-500/20'
+                        }`}
                       >
                         {displayedEvents[activeIndex].isHighlight && (
-                          <div className="absolute top-4 right-4">
+                          <div className="absolute top-4 right-4 flex items-center space-x-2">
+                            <span className="text-yellow-400 text-xs font-medium">Special Memory</span>
                             <Sparkles className="text-yellow-400" size={24} />
                           </div>
                         )}
+
+                        {/* Edit button */}
+                        <button
+                          onClick={() => openEditModal(displayedEvents[activeIndex])}
+                          className="absolute top-4 left-4 p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors"
+                          title="Edit memory"
+                        >
+                          <span className="text-white text-xs">✏️</span>
+                        </button>
                         
                         <div className="flex flex-col space-y-6">
                           <div className="text-center">
+                            {displayedEvents[activeIndex].category && (
+                              <div className="text-blue-300 mb-1 text-xs uppercase tracking-wide">
+                                {displayedEvents[activeIndex].category.replace('_', ' ')}
+                              </div>
+                            )}
                             <div className="text-purple-300 mb-1 text-sm">
                               {formatDate(displayedEvents[activeIndex].date)}
                             </div>
                             <h3 className="text-xl font-bold text-white leading-tight mb-4">
                               {displayedEvents[activeIndex].title}
                             </h3>
+                            {displayedEvents[activeIndex].emotions && displayedEvents[activeIndex].emotions!.length > 0 && (
+                              <div className="flex justify-center flex-wrap gap-2 mb-4">
+                                {displayedEvents[activeIndex].emotions!.map((emotion, i) => (
+                                  <span key={i} className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded-full">
+                                    {emotion}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
                             <div className="max-h-32 overflow-y-auto">
                               <p className="text-white/80 text-sm whitespace-pre-wrap leading-relaxed">
                                 {displayedEvents[activeIndex].description.length > 200 
@@ -502,21 +607,49 @@ function Timeline() {
 
                         {/* Event content */}
                         <div className="flex-1 pb-8">
-                          <div className="bg-gradient-to-br from-purple-900/40 to-pink-900/40 rounded-xl p-6 border border-purple-500/20 hover:border-purple-500/40 transition-all duration-300 shadow-lg hover:shadow-xl relative">
+                          <div className={`rounded-xl p-6 border hover:border-purple-500/40 transition-all duration-300 shadow-lg hover:shadow-xl relative ${
+                            event.isHighlight 
+                              ? 'bg-gradient-to-br from-yellow-900/40 to-orange-900/40 border-yellow-500/30' 
+                              : 'bg-gradient-to-br from-purple-900/40 to-pink-900/40 border-purple-500/20'
+                          }`}>
                             {event.isHighlight && (
-                              <div className="absolute top-4 right-4">
+                              <div className="absolute top-4 right-4 flex items-center space-x-2">
+                                <span className="text-yellow-400 text-xs font-medium">Special Memory</span>
                                 <Sparkles className="text-yellow-400" size={20} />
                               </div>
                             )}
+
+                            {/* Edit button */}
+                            <button
+                              onClick={() => openEditModal(event)}
+                              className="absolute top-4 left-4 p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors"
+                              title="Edit memory"
+                            >
+                              <span className="text-white text-xs">✏️</span>
+                            </button>
                             
                             <div className="flex flex-col lg:flex-row lg:space-x-6">
                               <div className="flex-1">
+                                {event.category && (
+                                  <div className="text-blue-300 mb-1 text-xs uppercase tracking-wide">
+                                    {event.category.replace('_', ' ')}
+                                  </div>
+                                )}
                                 <div className="text-purple-300 mb-2 text-sm">
                                   {formatDate(event.date)}
                                 </div>
                                 <h3 className="text-2xl font-bold text-white mb-4 leading-tight">
                                   {event.title}
                                 </h3>
+                                {event.emotions && event.emotions.length > 0 && (
+                                  <div className="flex flex-wrap gap-2 mb-4">
+                                    {event.emotions.map((emotion, i) => (
+                                      <span key={i} className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded-full">
+                                        {emotion}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
                                 <div className="max-h-48 overflow-y-auto pr-2">
                                   <p className="text-white/80 text-sm whitespace-pre-wrap leading-relaxed">
                                     {event.description}
@@ -571,18 +704,18 @@ function Timeline() {
         </div>
       </div>
 
-      {/* Add Memory Modal */}
-      {showModal && (
+      {/* Add/Edit Memory Modal */}
+      {(showModal || showEditModal) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="glass-effect border border-white/10 rounded-2xl p-6 w-full max-w-md"
+            className="glass-effect border border-white/10 rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto"
           >
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold">Add New Memory</h3>
+              <h3 className="text-xl font-bold">{editingEvent ? 'Edit Memory' : 'Add New Memory'}</h3>
               <button
-                onClick={closeModal}
+                onClick={editingEvent ? closeEditModal : closeModal}
                 className="p-2 rounded-full hover:bg-white/10 transition-colors"
               >
                 <X size={20} />
@@ -610,6 +743,29 @@ function Timeline() {
                   className="w-full p-3 bg-white/5 border border-white/10 rounded-lg focus:border-purple-500 transition-colors"
                 />
               </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Category</label>
+                <select
+                  value={formData.category}
+                  onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                  className="w-full p-3 bg-white/5 border border-white/10 rounded-lg focus:border-purple-500 transition-colors"
+                >
+                  <option value="">Select a category</option>
+                  <option value="milestone">Milestone</option>
+                  <option value="celebration">Celebration</option>
+                  <option value="date">Date</option>
+                  <option value="travel">Travel</option>
+                  <option value="romantic_gesture">Romantic Gesture</option>
+                  <option value="anniversary">Anniversary</option>
+                  <option value="gift">Gift</option>
+                  <option value="crisis">Crisis</option>
+                  <option value="reconciliation">Reconciliation</option>
+                  <option value="family">Family</option>
+                  <option value="achievement">Achievement</option>
+                  <option value="surprise">Surprise</option>
+                </select>
+              </div>
               
               <div>
                 <label className="block text-sm font-medium mb-2">Description</label>
@@ -619,6 +775,35 @@ function Timeline() {
                   className="w-full p-3 bg-white/5 border border-white/10 rounded-lg focus:border-purple-500 transition-colors h-32 resize-none"
                   placeholder="Describe this memory..."
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Emotions (comma-separated)</label>
+                <input
+                  type="text"
+                  value={formData.emotions.join(', ')}
+                  onChange={(e) => setFormData(prev => ({ 
+                    ...prev, 
+                    emotions: e.target.value.split(',').map(s => s.trim()).filter(s => s) 
+                  }))}
+                  className="w-full p-3 bg-white/5 border border-white/10 rounded-lg focus:border-purple-500 transition-colors"
+                  placeholder="happy, excited, nostalgic..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Upload Image</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="w-full p-3 bg-white/5 border border-white/10 rounded-lg focus:border-purple-500 transition-colors"
+                />
+                {formData.image && (
+                  <div className="mt-2">
+                    <img src={formData.image} alt="Preview" className="w-full h-32 object-cover rounded-lg" />
+                  </div>
+                )}
               </div>
               
               <div className="flex items-center">
@@ -638,7 +823,7 @@ function Timeline() {
             
             <div className="flex space-x-3 mt-6">
               <button
-                onClick={closeModal}
+                onClick={editingEvent ? closeEditModal : closeModal}
                 className="flex-1 px-4 py-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
               >
                 Cancel
@@ -648,7 +833,7 @@ function Timeline() {
                 className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300 flex items-center justify-center"
               >
                 <Save size={16} className="mr-2" />
-                Save
+                {editingEvent ? 'Update' : 'Save'}
               </button>
             </div>
           </motion.div>
@@ -680,12 +865,6 @@ function Timeline() {
               >
                 <X size={20} />
               </button>
-              
-              {/* Image title */}
-              <div className="absolute bottom-4 left-4 right-4 bg-black/50 rounded-lg p-3 text-white">
-                <h3 className="font-semibold text-lg">{modalImageTitle}</h3>
-                <p className="text-sm text-gray-300 mt-1">Click anywhere to close</p>
-              </div>
             </div>
           </motion.div>
         </div>
