@@ -209,7 +209,7 @@ class DataService {
   private activeRequests: Set<string> = new Set();
 
   // Page size for incremental loading
-  private readonly PAGE_SIZE = 3;
+  private readonly PAGE_SIZE = 2;
 
   // Load only essential metadata first (no content)
   async loadMemoryMetadata(): Promise<{ total: number; pages: number }> {

@@ -118,115 +118,170 @@ const MinimalTimelineImage = ({
 const AdditionalMemoryFields = ({ event }: { event: TimelineEvent }) => {
   // Define field display configurations for ALL 69 unique fields
   const fieldConfigs = [
-    // Core fields (already handled elsewhere)
-    { key: 'activities', label: 'Activities', icon: '🎯', color: 'text-indigo-400 bg-indigo-500/20' },
-    { key: 'adventure', label: 'Adventure', icon: '🏔️', color: 'text-green-400 bg-green-500/20' },
-    { key: 'attempted_dish', label: 'Attempted Dish', icon: '👨‍🍳', color: 'text-orange-400 bg-orange-500/20' },
-    { key: 'benefit', label: 'Benefit', icon: '✅', color: 'text-green-400 bg-green-500/20' },
-    { key: 'budget_notes', label: 'Budget Notes', icon: '💰', color: 'text-yellow-400 bg-yellow-500/20' },
-    { key: 'care', label: 'Care', icon: '💚', color: 'text-green-400 bg-green-500/20' },
-    { key: 'care_actions', label: 'Care Actions', icon: '🤝', color: 'text-blue-400 bg-blue-500/20' },
-    { key: 'celebration_type', label: 'Celebration Type', icon: '🎉', color: 'text-pink-400 bg-pink-500/20' },
-    { key: 'comfort_items', label: 'Comfort Items', icon: '🛋️', color: 'text-purple-400 bg-purple-500/20' },
-    { key: 'companions', label: 'Companions', icon: '👥', color: 'text-blue-400 bg-blue-500/20' },
-    { key: 'conflict', label: 'Conflict', icon: '⚔️', color: 'text-red-400 bg-red-500/20' },
-    { key: 'constraint', label: 'Constraint', icon: '⛓️', color: 'text-gray-400 bg-gray-500/20' },
-    { key: 'context', label: 'Context', icon: '🔍', color: 'text-blue-400 bg-blue-500/20' },
-    { key: 'details', label: 'Details', icon: '📄', color: 'text-gray-400 bg-gray-500/20' },
-    { key: 'devotion', label: 'Devotion', icon: '💝', color: 'text-pink-400 bg-pink-500/20' },
-    { key: 'discovery', label: 'Discovery', icon: '🔬', color: 'text-cyan-400 bg-cyan-500/20' },
-    { key: 'doctor_quote', label: 'Doctor Quote', icon: '👨‍⚕️', color: 'text-green-400 bg-green-500/20' },
-    { key: 'eating_pattern', label: 'Eating Pattern', icon: '🍽️', color: 'text-orange-400 bg-orange-500/20' },
-    { key: 'effort', label: 'Effort', icon: '💪', color: 'text-blue-400 bg-blue-500/20' },
-    { key: 'emotional_detail', label: 'Emotional Detail', icon: '💭', color: 'text-purple-400 bg-purple-500/20' },
-    { key: 'emotional_impact', label: 'Emotional Impact', icon: '💥', color: 'text-red-400 bg-red-500/20' },
-    { key: 'emotional_support', label: 'Emotional Support', icon: '🤗', color: 'text-pink-400 bg-pink-500/20' },
-    { key: 'event', label: 'Event', icon: '📅', color: 'text-blue-400 bg-blue-500/20' },
-    { key: 'famous_quote', label: 'Famous Quote', icon: '💬', color: 'text-yellow-400 bg-yellow-500/20' },
-    { key: 'favorite_moment', label: 'Favorite Moment', icon: '⭐', color: 'text-yellow-400 bg-yellow-500/20' },
-    { key: 'festival', label: 'Festival', icon: '🎊', color: 'text-pink-400 bg-pink-500/20' },
-    { key: 'first_experience', label: 'First Experience', icon: '🥇', color: 'text-gold-400 bg-yellow-500/20' },
-    { key: 'firsts', label: 'Firsts', icon: '🏆', color: 'text-gold-400 bg-yellow-500/20' },
-    { key: 'flex', label: 'Flex', icon: '💫', color: 'text-purple-400 bg-purple-500/20' },
-    { key: 'food', label: 'Food', icon: '🍕', color: 'text-orange-400 bg-orange-500/20' },
-    { key: 'food_choice', label: 'Food Choice', icon: '🍴', color: 'text-orange-400 bg-orange-500/20' },
-    { key: 'gesture', label: 'Gesture', icon: '🤝', color: 'text-blue-400 bg-blue-500/20' },
-    { key: 'gift', label: 'Gift', icon: '🎁', color: 'text-pink-400 bg-pink-500/20' },
-    { key: 'gifts', label: 'Gifts', icon: '🎁', color: 'text-pink-400 bg-pink-500/20' },
-    { key: 'incident', label: 'Incident', icon: '⚠️', color: 'text-red-400 bg-red-500/20' },
-    { key: 'ingredients', label: 'Ingredients', icon: '🧄', color: 'text-green-400 bg-green-500/20' },
-    { key: 'initial_feeling', label: 'Initial Feeling', icon: '💫', color: 'text-purple-400 bg-purple-500/20' },
-    { key: 'location', label: 'Location', icon: '📍', color: 'text-green-400 bg-green-500/20' },
-    { key: 'locations', label: 'Locations', icon: '🗺️', color: 'text-green-400 bg-green-500/20' },
-    { key: 'logistics', label: 'Logistics', icon: '📋', color: 'text-gray-400 bg-gray-500/20' },
-    { key: 'medical_concern', label: 'Medical Concern', icon: '🏥', color: 'text-red-400 bg-red-500/20' },
-    { key: 'medical_details', label: 'Medical Details', icon: '👨‍⚕️', color: 'text-green-400 bg-green-500/20' },
-    { key: 'memorable_event', label: 'Memorable Event', icon: '🌟', color: 'text-yellow-400 bg-yellow-500/20' },
-    { key: 'memorable_incident', label: 'Memorable Incident', icon: '💭', color: 'text-purple-400 bg-purple-500/20' },
-    { key: 'memorable_items', label: 'Memorable Items', icon: '🏺', color: 'text-brown-400 bg-amber-500/20' },
-    { key: 'memorable_quote', label: 'Memorable Quote', icon: '💬', color: 'text-yellow-400 bg-yellow-500/20' },
-    { key: 'method', label: 'Method', icon: '⚙️', color: 'text-gray-400 bg-gray-500/20' },
-    { key: 'milestone', label: 'Milestone', icon: '🏁', color: 'text-yellow-400 bg-yellow-500/20' },
-    { key: 'note', label: 'Note', icon: '📝', color: 'text-gray-400 bg-gray-500/20' },
-    { key: 'notes', label: 'Notes', icon: '📋', color: 'text-gray-400 bg-gray-500/20' },
-    { key: 'observation', label: 'Observation', icon: '👁️', color: 'text-cyan-400 bg-cyan-500/20' },
-    { key: 'occasion', label: 'Occasion', icon: '🎪', color: 'text-pink-400 bg-pink-500/20' },
-    { key: 'order', label: 'Order', icon: '📋', color: 'text-gray-400 bg-gray-500/20' },
-    { key: 'organization', label: 'Organization', icon: '🏢', color: 'text-blue-400 bg-blue-500/20' },
-    { key: 'outcome', label: 'Outcome', icon: '🎯', color: 'text-purple-400 bg-purple-500/20' },
-    { key: 'outlet', label: 'Outlet', icon: '🚪', color: 'text-gray-400 bg-gray-500/20' },
-    { key: 'pattern', label: 'Pattern', icon: '🔄', color: 'text-blue-400 bg-blue-500/20' },
-    { key: 'promise', label: 'Promise', icon: '🤝', color: 'text-pink-400 bg-pink-500/20' },
-    { key: 'realization', label: 'Realization', icon: '💡', color: 'text-yellow-400 bg-yellow-500/20' },
-    { key: 'regret', label: 'Regret', icon: '😔', color: 'text-red-400 bg-red-500/20' },
-    { key: 'response', label: 'Response', icon: '💬', color: 'text-blue-400 bg-blue-500/20' },
-    { key: 'restaurant', label: 'Restaurant', icon: '🍽️', color: 'text-orange-400 bg-orange-500/20' },
-    { key: 'restaurants', label: 'Restaurants', icon: '🏪', color: 'text-orange-400 bg-orange-500/20' },
-    { key: 'role', label: 'Role', icon: '👤', color: 'text-blue-400 bg-blue-500/20' },
-    { key: 'saved_message', label: 'Saved Message', icon: '💌', color: 'text-pink-400 bg-pink-500/20' },
-    { key: 'separation_duration', label: 'Separation Duration', icon: '⏰', color: 'text-red-400 bg-red-500/20' },
-    { key: 'significance', label: 'Significance', icon: '⭐', color: 'text-yellow-400 bg-yellow-500/20' },
-    { key: 'song', label: 'Song', icon: '🎵', color: 'text-purple-400 bg-purple-500/20' },
-    { key: 'song_type', label: 'Song Type', icon: '🎶', color: 'text-purple-400 bg-purple-500/20' },
-    { key: 'special_quotes', label: 'Special Quotes', icon: '💭', color: 'text-yellow-400 bg-yellow-500/20' },
-    { key: 'strategy', label: 'Strategy', icon: '🧠', color: 'text-blue-400 bg-blue-500/20' },
-    { key: 'successful_dish', label: 'Successful Dish', icon: '👨‍🍳', color: 'text-green-400 bg-green-500/20' },
-    { key: 'surprise_element', label: 'Surprise Element', icon: '🎉', color: 'text-pink-400 bg-pink-500/20' },
-    { key: 'telegram_detail', label: 'Telegram Detail', icon: '📱', color: 'text-blue-400 bg-blue-500/20' },
-    { key: 'time', label: 'Time', icon: '🕐', color: 'text-gray-400 bg-gray-500/20' },
-    { key: 'timing', label: 'Timing', icon: '⏱️', color: 'text-gray-400 bg-gray-500/20' },
-    { key: 'trigger', label: 'Trigger', icon: '⚡', color: 'text-red-400 bg-red-500/20' },
-    { key: 'unique_elements', label: 'Unique Elements', icon: '✨', color: 'text-purple-400 bg-purple-500/20' },
-    { key: 'witnesses', label: 'Witnesses', icon: '👥', color: 'text-blue-400 bg-blue-500/20' },
+    // High priority fields (most important - show first)
+    { key: 'significance', label: 'Significance', icon: '⭐', color: 'text-yellow-400 bg-yellow-500/20', priority: 1 },
+    { key: 'location', label: 'Location', icon: '📍', color: 'text-green-400 bg-green-500/20', priority: 1 },
+    { key: 'context', label: 'Context', icon: '🔍', color: 'text-blue-400 bg-blue-500/20', priority: 1 },
+    { key: 'outcome', label: 'Outcome', icon: '🎯', color: 'text-purple-400 bg-purple-500/20', priority: 1 },
+    { key: 'realization', label: 'Realization', icon: '💡', color: 'text-yellow-400 bg-yellow-500/20', priority: 1 },
+    { key: 'gifts', label: 'Gifts', icon: '🎁', color: 'text-pink-400 bg-pink-500/20', priority: 1 },
+    { key: 'gift', label: 'Gift', icon: '🎁', color: 'text-pink-400 bg-pink-500/20', priority: 1 },
+    { key: 'restaurant', label: 'Restaurant', icon: '🍽️', color: 'text-orange-400 bg-orange-500/20', priority: 1 },
+    { key: 'notes', label: 'Notes', icon: '📋', color: 'text-gray-400 bg-gray-500/20', priority: 1 },
+    { key: 'note', label: 'Note', icon: '📝', color: 'text-gray-400 bg-gray-500/20', priority: 1 },
+    
+    // Medium priority fields
+    { key: 'activities', label: 'Activities', icon: '🎯', color: 'text-indigo-400 bg-indigo-500/20', priority: 2 },
+    { key: 'gesture', label: 'Gesture', icon: '🤝', color: 'text-blue-400 bg-blue-500/20', priority: 2 },
+    { key: 'details', label: 'Details', icon: '📄', color: 'text-gray-400 bg-gray-500/20', priority: 2 },
+    { key: 'memorable_event', label: 'Memorable Event', icon: '🌟', color: 'text-yellow-400 bg-yellow-500/20', priority: 2 },
+    { key: 'milestone', label: 'Milestone', icon: '🏁', color: 'text-yellow-400 bg-yellow-500/20', priority: 2 },
+    { key: 'emotional_detail', label: 'Emotional Detail', icon: '💭', color: 'text-purple-400 bg-purple-500/20', priority: 2 },
+    { key: 'favorite_moment', label: 'Favorite Moment', icon: '⭐', color: 'text-yellow-400 bg-yellow-500/20', priority: 2 },
+    { key: 'food', label: 'Food', icon: '🍕', color: 'text-orange-400 bg-orange-500/20', priority: 2 },
+    { key: 'locations', label: 'Locations', icon: '🗺️', color: 'text-green-400 bg-green-500/20', priority: 2 },
+    { key: 'celebration_type', label: 'Celebration Type', icon: '🎉', color: 'text-pink-400 bg-pink-500/20', priority: 2 },
+    
+    // Lower priority fields (show only if expanded)
+    { key: 'adventure', label: 'Adventure', icon: '🏔️', color: 'text-green-400 bg-green-500/20', priority: 3 },
+    { key: 'attempted_dish', label: 'Attempted Dish', icon: '👨‍🍳', color: 'text-orange-400 bg-orange-500/20', priority: 3 },
+    { key: 'benefit', label: 'Benefit', icon: '✅', color: 'text-green-400 bg-green-500/20', priority: 3 },
+    { key: 'budget_notes', label: 'Budget Notes', icon: '💰', color: 'text-yellow-400 bg-yellow-500/20', priority: 3 },
+    { key: 'care', label: 'Care', icon: '💚', color: 'text-green-400 bg-green-500/20', priority: 3 },
+    { key: 'care_actions', label: 'Care Actions', icon: '🤝', color: 'text-blue-400 bg-blue-500/20', priority: 3 },
+    { key: 'comfort_items', label: 'Comfort Items', icon: '🛋️', color: 'text-purple-400 bg-purple-500/20', priority: 3 },
+    { key: 'companions', label: 'Companions', icon: '👥', color: 'text-blue-400 bg-blue-500/20', priority: 3 },
+    { key: 'conflict', label: 'Conflict', icon: '⚔️', color: 'text-red-400 bg-red-500/20', priority: 3 },
+    { key: 'constraint', label: 'Constraint', icon: '⛓️', color: 'text-gray-400 bg-gray-500/20', priority: 3 },
+    { key: 'devotion', label: 'Devotion', icon: '💝', color: 'text-pink-400 bg-pink-500/20', priority: 3 },
+    { key: 'discovery', label: 'Discovery', icon: '🔬', color: 'text-cyan-400 bg-cyan-500/20', priority: 3 },
+    { key: 'doctor_quote', label: 'Doctor Quote', icon: '👨‍⚕️', color: 'text-green-400 bg-green-500/20', priority: 3 },
+    { key: 'eating_pattern', label: 'Eating Pattern', icon: '🍽️', color: 'text-orange-400 bg-orange-500/20', priority: 3 },
+    { key: 'effort', label: 'Effort', icon: '💪', color: 'text-blue-400 bg-blue-500/20', priority: 3 },
+    { key: 'emotional_impact', label: 'Emotional Impact', icon: '💥', color: 'text-red-400 bg-red-500/20', priority: 3 },
+    { key: 'emotional_support', label: 'Emotional Support', icon: '🤗', color: 'text-pink-400 bg-pink-500/20', priority: 3 },
+    { key: 'event', label: 'Event', icon: '📅', color: 'text-blue-400 bg-blue-500/20', priority: 3 },
+    { key: 'famous_quote', label: 'Famous Quote', icon: '💬', color: 'text-yellow-400 bg-yellow-500/20', priority: 3 },
+    { key: 'festival', label: 'Festival', icon: '🎊', color: 'text-pink-400 bg-pink-500/20', priority: 3 },
+    { key: 'first_experience', label: 'First Experience', icon: '🥇', color: 'text-gold-400 bg-yellow-500/20', priority: 3 },
+    { key: 'firsts', label: 'Firsts', icon: '🏆', color: 'text-gold-400 bg-yellow-500/20', priority: 3 },
+    { key: 'flex', label: 'Flex', icon: '💫', color: 'text-purple-400 bg-purple-500/20', priority: 3 },
+    { key: 'food_choice', label: 'Food Choice', icon: '🍴', color: 'text-orange-400 bg-orange-500/20', priority: 3 },
+    { key: 'incident', label: 'Incident', icon: '⚠️', color: 'text-red-400 bg-red-500/20', priority: 3 },
+    { key: 'ingredients', label: 'Ingredients', icon: '🧄', color: 'text-green-400 bg-green-500/20', priority: 3 },
+    { key: 'initial_feeling', label: 'Initial Feeling', icon: '💫', color: 'text-purple-400 bg-purple-500/20', priority: 3 },
+    { key: 'logistics', label: 'Logistics', icon: '📋', color: 'text-gray-400 bg-gray-500/20', priority: 3 },
+    { key: 'medical_concern', label: 'Medical Concern', icon: '🏥', color: 'text-red-400 bg-red-500/20', priority: 3 },
+    { key: 'medical_details', label: 'Medical Details', icon: '👨‍⚕️', color: 'text-green-400 bg-green-500/20', priority: 3 },
+    { key: 'memorable_incident', label: 'Memorable Incident', icon: '💭', color: 'text-purple-400 bg-purple-500/20', priority: 3 },
+    { key: 'memorable_items', label: 'Memorable Items', icon: '🏺', color: 'text-brown-400 bg-amber-500/20', priority: 3 },
+    { key: 'memorable_quote', label: 'Memorable Quote', icon: '💬', color: 'text-yellow-400 bg-yellow-500/20', priority: 3 },
+    { key: 'method', label: 'Method', icon: '⚙️', color: 'text-gray-400 bg-gray-500/20', priority: 3 },
+    { key: 'observation', label: 'Observation', icon: '👁️', color: 'text-cyan-400 bg-cyan-500/20', priority: 3 },
+    { key: 'occasion', label: 'Occasion', icon: '🎪', color: 'text-pink-400 bg-pink-500/20', priority: 3 },
+    { key: 'order', label: 'Order', icon: '📋', color: 'text-gray-400 bg-gray-500/20', priority: 3 },
+    { key: 'organization', label: 'Organization', icon: '🏢', color: 'text-blue-400 bg-blue-500/20', priority: 3 },
+    { key: 'outlet', label: 'Outlet', icon: '🚪', color: 'text-gray-400 bg-gray-500/20', priority: 3 },
+    { key: 'pattern', label: 'Pattern', icon: '🔄', color: 'text-blue-400 bg-blue-500/20', priority: 3 },
+    { key: 'promise', label: 'Promise', icon: '🤝', color: 'text-pink-400 bg-pink-500/20', priority: 3 },
+    { key: 'regret', label: 'Regret', icon: '😔', color: 'text-red-400 bg-red-500/20', priority: 3 },
+    { key: 'response', label: 'Response', icon: '💬', color: 'text-blue-400 bg-blue-500/20', priority: 3 },
+    { key: 'restaurants', label: 'Restaurants', icon: '🏪', color: 'text-orange-400 bg-orange-500/20', priority: 3 },
+    { key: 'role', label: 'Role', icon: '👤', color: 'text-blue-400 bg-blue-500/20', priority: 3 },
+    { key: 'saved_message', label: 'Saved Message', icon: '💌', color: 'text-pink-400 bg-pink-500/20', priority: 3 },
+    { key: 'separation_duration', label: 'Separation Duration', icon: '⏰', color: 'text-red-400 bg-red-500/20', priority: 3 },
+    { key: 'song', label: 'Song', icon: '🎵', color: 'text-purple-400 bg-purple-500/20', priority: 3 },
+    { key: 'song_type', label: 'Song Type', icon: '🎶', color: 'text-purple-400 bg-purple-500/20', priority: 3 },
+    { key: 'special_quotes', label: 'Special Quotes', icon: '💭', color: 'text-yellow-400 bg-yellow-500/20', priority: 3 },
+    { key: 'strategy', label: 'Strategy', icon: '🧠', color: 'text-blue-400 bg-blue-500/20', priority: 3 },
+    { key: 'successful_dish', label: 'Successful Dish', icon: '👨‍🍳', color: 'text-green-400 bg-green-500/20', priority: 3 },
+    { key: 'surprise_element', label: 'Surprise Element', icon: '🎉', color: 'text-pink-400 bg-pink-500/20', priority: 3 },
+    { key: 'telegram_detail', label: 'Telegram Detail', icon: '📱', color: 'text-blue-400 bg-blue-500/20', priority: 3 },
+    { key: 'time', label: 'Time', icon: '🕐', color: 'text-gray-400 bg-gray-500/20', priority: 3 },
+    { key: 'timing', label: 'Timing', icon: '⏱️', color: 'text-gray-400 bg-gray-500/20', priority: 3 },
+    { key: 'trigger', label: 'Trigger', icon: '⚡', color: 'text-red-400 bg-red-500/20', priority: 3 },
+    { key: 'unique_elements', label: 'Unique Elements', icon: '✨', color: 'text-purple-400 bg-purple-500/20', priority: 3 },
+    { key: 'witnesses', label: 'Witnesses', icon: '👥', color: 'text-blue-400 bg-blue-500/20', priority: 3 },
   ];
 
-  const additionalFields = fieldConfigs.filter(config => {
-    const value = event[config.key];
-    return value && value !== '' && (Array.isArray(value) ? value.length > 0 : true);
-  });
+  const [showAllFields, setShowAllFields] = useState(false);
+  const [renderError, setRenderError] = useState<string | null>(null);
 
-  if (additionalFields.length === 0) return null;
+  // Performance optimization: limit initial fields shown
+  try {
+    const allFields = fieldConfigs.filter(config => {
+      const value = event[config.key];
+      return value && value !== '' && (Array.isArray(value) ? value.length > 0 : true);
+    });
 
-  return (
-    <div className="mt-4 space-y-2">
-      {additionalFields.map(config => {
-        const value = event[config.key];
-        const displayValue = Array.isArray(value) ? value.join(', ') : value;
+    // Show high priority fields first, then medium priority if not too many
+    const highPriorityFields = allFields.filter(f => f.priority === 1);
+    const mediumPriorityFields = allFields.filter(f => f.priority === 2);
+    const lowPriorityFields = allFields.filter(f => f.priority === 3);
+
+    // Limit fields to prevent performance issues
+    const fieldsToShow = showAllFields 
+      ? [...highPriorityFields, ...mediumPriorityFields.slice(0, 5), ...lowPriorityFields.slice(0, 10)]
+      : [...highPriorityFields, ...mediumPriorityFields.slice(0, 3)];
+
+    if (fieldsToShow.length === 0) return null;
+
+    const hasMoreFields = allFields.length > fieldsToShow.length;
+
+    return (
+      <div className="mt-4 space-y-2">
+        {fieldsToShow.map(config => {
+          try {
+            const value = event[config.key];
+            const displayValue = Array.isArray(value) ? value.join(', ') : value;
+            
+            // Truncate very long values to prevent layout issues
+            const truncatedValue = displayValue && displayValue.length > 200 
+              ? displayValue.substring(0, 200) + '...' 
+              : displayValue;
+            
+            return (
+              <div key={config.key} className="flex items-start space-x-2">
+                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${config.color}`}>
+                  <span className="mr-1">{config.icon}</span>
+                  {config.label}
+                </span>
+                <span className="text-white/70 text-xs flex-1 leading-relaxed">
+                  {truncatedValue}
+                </span>
+              </div>
+            );
+          } catch (error) {
+            console.error('Error rendering field:', config.key, error);
+            return null;
+          }
+        })}
         
-        return (
-          <div key={config.key} className="flex items-start space-x-2">
-            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${config.color}`}>
-              <span className="mr-1">{config.icon}</span>
-              {config.label}
-            </span>
-            <span className="text-white/70 text-xs flex-1 leading-relaxed">
-              {displayValue}
-            </span>
+        {hasMoreFields && (
+          <button
+            onClick={() => setShowAllFields(!showAllFields)}
+            className="text-xs text-purple-400 hover:text-purple-300 transition-colors mt-2"
+          >
+            {showAllFields ? 'Show Less' : `Show ${allFields.length - fieldsToShow.length} More Fields`}
+          </button>
+        )}
+        
+        {renderError && (
+          <div className="text-red-400 text-xs mt-2">
+            Error displaying some fields: {renderError}
           </div>
-        );
-      })}
-    </div>
-  );
+        )}
+      </div>
+    );
+  } catch (error) {
+    console.error('Error in AdditionalMemoryFields:', error);
+    setRenderError(error instanceof Error ? error.message : 'Unknown error');
+    return (
+      <div className="mt-4 text-red-400 text-xs">
+        Error loading additional fields
+      </div>
+    );
+  }
 };
 
 function Timeline() {
@@ -237,6 +292,7 @@ function Timeline() {
   const [hasMorePages, setHasMorePages] = useState(true);
   const [totalMemories, setTotalMemories] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [renderingError, setRenderingError] = useState<string | null>(null);
   
   // Mobile state
   const [activeIndex, setActiveIndex] = useState(0);
@@ -274,7 +330,7 @@ function Timeline() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
   
-  // Load initial page only (3 items)
+  // Load initial page only (reduce from 3 to 2 items for better performance)
   useEffect(() => {
     loadInitialPage();
   }, []);
@@ -282,7 +338,7 @@ function Timeline() {
   const loadInitialPage = async () => {
     setIsInitialLoading(true);
     try {
-      console.log('Loading initial page (3 items)...');
+      console.log('Loading initial page (2 items for performance)...');
       const result = await dataService.getTimelineEventsPage(0);
       
       setDisplayedEvents(result.events);
@@ -327,21 +383,31 @@ function Timeline() {
     }
   }, [currentPage, hasMorePages, isLoadingMore, showError]);
 
-  // Intersection observer for desktop infinite scroll
+  // Intersection observer for desktop infinite scroll with debouncing
   useEffect(() => {
     if (!sentinelRef.current || !hasMorePages || isLoadingMore || isMobile) return;
 
+    let timeoutId: NodeJS.Timeout;
+    
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
-          loadNextPage();
+          // Debounce the loading to prevent rapid calls
+          clearTimeout(timeoutId);
+          timeoutId = setTimeout(() => {
+            loadNextPage();
+          }, 500); // 500ms delay
         }
       },
-      { threshold: 0.1, rootMargin: '100px' }
+      { threshold: 0.1, rootMargin: '200px' } // Increased rootMargin for better UX
     );
 
     observer.observe(sentinelRef.current);
-    return () => observer.disconnect();
+    
+    return () => {
+      observer.disconnect();
+      clearTimeout(timeoutId);
+    };
   }, [hasMorePages, isLoadingMore, isMobile, loadNextPage]);
 
   // Format date
@@ -505,6 +571,27 @@ function Timeline() {
     return () => document.removeEventListener('keydown', handleEscape);
   }, [showImageModal, showModal, showEditModal]);
 
+  // Error boundary effect
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      console.error('Global error caught:', event.error);
+      setRenderingError('An unexpected error occurred. Please refresh the page.');
+    };
+
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      console.error('Unhandled promise rejection:', event.reason);
+      setRenderingError('A loading error occurred. Please try again.');
+    };
+
+    window.addEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+
+    return () => {
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
+  }, []);
+
   if (isInitialLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 text-white flex items-center justify-center">
@@ -513,15 +600,19 @@ function Timeline() {
     );
   }
 
-  if (error) {
+  if (error || renderingError) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 text-white flex items-center justify-center">
         <div className="text-center p-8 glass-effect rounded-lg border border-white/10 max-w-md">
           <X className="h-12 w-12 mx-auto mb-4 text-red-400" />
           <h2 className="text-xl font-semibold mb-2">Error Loading Timeline</h2>
-          <p className="text-gray-300 mb-4">{error}</p>
+          <p className="text-gray-300 mb-4">{error || renderingError}</p>
           <button 
-            onClick={() => window.location.reload()}
+            onClick={() => {
+              setError(null);
+              setRenderingError(null);
+              window.location.reload();
+            }}
             className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300"
           >
             Try Again
@@ -568,260 +659,294 @@ function Timeline() {
           </div>
           
           {/* Content */}
-          {displayedEvents.length === 0 ? (
-            <div className="text-center py-20">
-              <div className="glass-effect rounded-2xl p-12 border border-white/10 max-w-md mx-auto">
-                <Calendar size={64} className="mx-auto mb-6 text-purple-400" />
-                <h3 className="text-2xl font-bold mb-4">No Memories Yet</h3>
-                <p className="text-gray-300 mb-6">Start your timeline by adding the first memory!</p>
-                <button
-                  onClick={openAddModal}
-                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-all duration-300"
-                >
-                  Add First Memory
-                </button>
-              </div>
-            </div>
-          ) : (
-            <>
-              {/* Mobile Carousel */}
-              {isMobile ? (
-                <div className="sm:hidden">
-                  <div className="flex justify-center mb-6">
-                    <div className="text-xs text-gray-400 bg-gray-800 px-3 py-1 rounded-full">
-                      {activeIndex + 1} of {displayedEvents.length}
-                      {hasMorePages && ' (loading more...)'}
+          {(() => {
+            try {
+              if (displayedEvents.length === 0) {
+                return (
+                  <div className="text-center py-20">
+                    <div className="glass-effect rounded-2xl p-12 border border-white/10 max-w-md mx-auto">
+                      <Calendar size={64} className="mx-auto mb-6 text-purple-400" />
+                      <h3 className="text-2xl font-bold mb-4">No Memories Yet</h3>
+                      <p className="text-gray-300 mb-6">Start your timeline by adding the first memory!</p>
+                      <button
+                        onClick={openAddModal}
+                        className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-all duration-300"
+                      >
+                        Add First Memory
+                      </button>
                     </div>
                   </div>
-                  
-                  <AnimatePresence mode="wait">
-                    {displayedEvents[activeIndex] && (
-                      <motion.div
-                        key={displayedEvents[activeIndex].id}
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        transition={{ duration: 0.3 }}
-                        className={`px-6 py-8 rounded-xl border min-h-[500px] relative ${
-                          displayedEvents[activeIndex].isHighlight 
-                            ? 'bg-gradient-to-br from-yellow-900/40 to-orange-900/40 border-yellow-500/30' 
-                            : 'bg-gradient-to-br from-purple-900/30 to-pink-900/30 border-purple-500/20'
-                        }`}
-                      >
-                        {displayedEvents[activeIndex].isHighlight && (
-                          <div className="absolute top-4 right-4 flex items-center space-x-2">
-                            <span className="text-yellow-400 text-xs font-medium">Special Memory</span>
-                            <Sparkles className="text-yellow-400" size={24} />
-                          </div>
-                        )}
+                );
+              }
 
-                        {/* Edit button */}
-                        <button
-                          onClick={() => openEditModal(displayedEvents[activeIndex])}
-                          className="absolute bottom-4 right-4 p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors shadow-lg backdrop-blur-sm"
-                          title="Edit memory"
-                        >
-                          <span className="text-white text-xs">✏️</span>
-                        </button>
-                        
-                        <div className="flex flex-col space-y-6">
-                          <div className="text-center">
-                            {displayedEvents[activeIndex].category && (
-                              <div className="text-blue-300 mb-1 text-xs uppercase tracking-wide">
-                                {displayedEvents[activeIndex].category.replace('_', ' ')}
-                              </div>
-                            )}
-                            <div className="text-purple-300 mb-1 text-sm">
-                              {formatDate(displayedEvents[activeIndex].date)}
-                            </div>
-                            <h3 className="text-xl font-bold text-white leading-tight mb-4">
-                              {displayedEvents[activeIndex].title}
-                            </h3>
-                            {displayedEvents[activeIndex].emotions && displayedEvents[activeIndex].emotions!.length > 0 && (
-                              <div className="flex justify-center flex-wrap gap-2 mb-4">
-                                {displayedEvents[activeIndex].emotions!.map((emotion, i) => (
-                                  <span key={i} className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded-full">
-                                    {emotion}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
-                            <div className="max-h-32 overflow-y-auto">
-                              <p className="text-white/80 text-sm whitespace-pre-wrap leading-relaxed">
-                                {displayedEvents[activeIndex].description.length > 200 
-                                  ? displayedEvents[activeIndex].description.substring(0, 200) + '...'
-                                  : displayedEvents[activeIndex].description
-                                }
-                              </p>
-                            </div>
-                            
-                            {/* Additional memory fields */}
-                            <AdditionalMemoryFields event={displayedEvents[activeIndex]} />
-                          </div>
-                          
-                          <div className="flex justify-center">
-                            <MinimalTimelineImage
-                              event={displayedEvents[activeIndex]}
-                              className="w-64 h-64 object-cover rounded-lg shadow-xl border border-purple-500/30"
-                              onImageClick={handleImageClick}
-                            />
-                          </div>
+              return (
+                <>
+                  {/* Mobile Carousel */}
+                  {isMobile ? (
+                    <div className="sm:hidden">
+                      <div className="flex justify-center mb-6">
+                        <div className="text-xs text-gray-400 bg-gray-800 px-3 py-1 rounded-full">
+                          {activeIndex + 1} of {displayedEvents.length}
+                          {hasMorePages && ' (loading more...)'}
                         </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  <div className="flex justify-center mt-6 space-x-3">
-                    <button
-                      onClick={handlePrev}
-                      disabled={activeIndex === 0}
-                      className="p-3 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <ChevronLeft className="w-5 h-5" />
-                    </button>
-                    
-                    <button
-                      onClick={handleNext}
-                      disabled={activeIndex >= displayedEvents.length - 1 && !hasMorePages}
-                      className="p-3 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <ChevronRight className="w-5 h-5" />
-                    </button>
-                    
-                    {hasMorePages && (
-                      <button
-                        onClick={loadNextPage}
-                        disabled={isLoadingMore}
-                        className="px-4 py-3 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 transition-all duration-300 disabled:opacity-50 text-sm"
-                      >
-                        {isLoadingMore ? <Loader className="animate-spin h-4 w-4" /> : 'Load More'}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                /* Desktop Timeline */
-                <div className="hidden sm:block">
-                  <div className="flex flex-col space-y-8">
-                    {displayedEvents.map((event, index) => (
-                      <motion.div
-                        key={event.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className="flex items-start space-x-8 group"
-                      >
-                        {/* Timeline dot */}
-                        <div className="flex flex-col items-center">
-                          <div className={`w-4 h-4 rounded-full border-4 border-white shadow-lg ${
-                            event.isHighlight 
-                              ? 'bg-gradient-to-r from-yellow-400 to-orange-500' 
-                              : 'bg-gradient-to-r from-purple-500 to-pink-500'
-                          }`} />
-                          {index < displayedEvents.length - 1 && (
-                            <div className="w-0.5 h-24 bg-gradient-to-b from-purple-500 to-pink-500 mt-2" />
-                          )}
-                        </div>
-
-                        {/* Event content */}
-                        <div className="flex-1 pb-8">
-                          <div className={`rounded-xl p-6 border hover:border-purple-500/40 transition-all duration-300 shadow-lg hover:shadow-xl relative ${
-                            event.isHighlight 
-                              ? 'bg-gradient-to-br from-yellow-900/40 to-orange-900/40 border-yellow-500/30' 
-                              : 'bg-gradient-to-br from-purple-900/40 to-pink-900/40 border-purple-500/20'
-                          }`}>
-                            {event.isHighlight && (
+                      </div>
+                      
+                      <AnimatePresence mode="wait">
+                        {displayedEvents[activeIndex] && (
+                          <motion.div
+                            key={displayedEvents[activeIndex].id}
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            transition={{ duration: 0.3 }}
+                            className={`px-6 py-8 rounded-xl border min-h-[500px] relative ${
+                              displayedEvents[activeIndex].isHighlight 
+                                ? 'bg-gradient-to-br from-yellow-900/40 to-orange-900/40 border-yellow-500/30' 
+                                : 'bg-gradient-to-br from-purple-900/30 to-pink-900/30 border-purple-500/20'
+                            }`}
+                          >
+                            {/* Mobile content rendering */}
+                            {displayedEvents[activeIndex].isHighlight && (
                               <div className="absolute top-4 right-4 flex items-center space-x-2">
                                 <span className="text-yellow-400 text-xs font-medium">Special Memory</span>
-                                <Sparkles className="text-yellow-400" size={20} />
+                                <Sparkles className="text-yellow-400" size={24} />
                               </div>
                             )}
 
                             {/* Edit button */}
                             <button
-                              onClick={() => openEditModal(event)}
+                              onClick={() => openEditModal(displayedEvents[activeIndex])}
                               className="absolute bottom-4 right-4 p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors shadow-lg backdrop-blur-sm"
                               title="Edit memory"
                             >
                               <span className="text-white text-xs">✏️</span>
                             </button>
                             
-                            <div className="flex flex-col lg:flex-row lg:space-x-6">
-                              <div className="flex-1">
-                                {event.category && (
+                            <div className="flex flex-col space-y-6">
+                              <div className="text-center">
+                                {displayedEvents[activeIndex].category && (
                                   <div className="text-blue-300 mb-1 text-xs uppercase tracking-wide">
-                                    {event.category.replace('_', ' ')}
+                                    {displayedEvents[activeIndex].category.replace('_', ' ')}
                                   </div>
                                 )}
-                                <div className="text-purple-300 mb-2 text-sm">
-                                  {formatDate(event.date)}
+                                <div className="text-purple-300 mb-1 text-sm">
+                                  {formatDate(displayedEvents[activeIndex].date)}
                                 </div>
-                                <h3 className="text-2xl font-bold text-white mb-4 leading-tight">
-                                  {event.title}
+                                <h3 className="text-xl font-bold text-white leading-tight mb-4">
+                                  {displayedEvents[activeIndex].title}
                                 </h3>
-                                {event.emotions && event.emotions.length > 0 && (
-                                  <div className="flex flex-wrap gap-2 mb-4">
-                                    {event.emotions.map((emotion, i) => (
+                                {displayedEvents[activeIndex].emotions && displayedEvents[activeIndex].emotions!.length > 0 && (
+                                  <div className="flex justify-center flex-wrap gap-2 mb-4">
+                                    {displayedEvents[activeIndex].emotions!.map((emotion, i) => (
                                       <span key={i} className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded-full">
                                         {emotion}
                                       </span>
                                     ))}
                                   </div>
                                 )}
-                                <div className="max-h-48 overflow-y-auto pr-2">
+                                <div className="max-h-32 overflow-y-auto">
                                   <p className="text-white/80 text-sm whitespace-pre-wrap leading-relaxed">
-                                    {event.description}
+                                    {displayedEvents[activeIndex].description.length > 200 
+                                      ? displayedEvents[activeIndex].description.substring(0, 200) + '...'
+                                      : displayedEvents[activeIndex].description
+                                    }
                                   </p>
                                 </div>
                                 
                                 {/* Additional memory fields */}
-                                <AdditionalMemoryFields event={event} />
+                                <AdditionalMemoryFields event={displayedEvents[activeIndex]} />
                               </div>
                               
-                              <div className="lg:w-80 mt-4 lg:mt-0 flex-shrink-0">
+                              <div className="flex justify-center">
                                 <MinimalTimelineImage
-                                  event={event}
-                                  className="w-full h-64 object-cover rounded-lg shadow-xl border border-purple-500/30"
+                                  event={displayedEvents[activeIndex]}
+                                  className="w-64 h-64 object-cover rounded-lg shadow-xl border border-purple-500/30"
                                   onImageClick={handleImageClick}
                                 />
                               </div>
                             </div>
-                          </div>
-                        </div>
-                      </motion.div>
-                    ))}
-                    
-                    {/* Load more section */}
-                    {hasMorePages && (
-                      <div ref={sentinelRef} className="flex justify-center py-8">
-                        {isLoadingMore ? (
-                          <div className="flex items-center space-x-2 text-purple-400">
-                            <Loader className="animate-spin h-5 w-5" />
-                            <span>Loading more memories...</span>
-                          </div>
-                        ) : (
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
+                      <div className="flex justify-center mt-6 space-x-3">
+                        <button
+                          onClick={handlePrev}
+                          disabled={activeIndex === 0}
+                          className="p-3 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <ChevronLeft className="w-5 h-5" />
+                        </button>
+                        
+                        <button
+                          onClick={handleNext}
+                          disabled={activeIndex >= displayedEvents.length - 1 && !hasMorePages}
+                          className="p-3 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <ChevronRight className="w-5 h-5" />
+                        </button>
+                        
+                        {hasMorePages && (
                           <button
                             onClick={loadNextPage}
-                            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300"
+                            disabled={isLoadingMore}
+                            className="px-4 py-3 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 transition-all duration-300 disabled:opacity-50 text-sm"
                           >
-                            Load More Memories
+                            {isLoadingMore ? <Loader className="animate-spin h-4 w-4" /> : 'Load More'}
                           </button>
                         )}
                       </div>
-                    )}
-                    
-                    {!hasMorePages && displayedEvents.length > 0 && (
-                      <div className="text-center py-8">
-                        <div className="text-gray-400 text-sm">
-                          ✨ You've explored all your beautiful memories ✨
-                        </div>
+                    </div>
+                  ) : (
+                    /* Desktop Timeline */
+                    <div className="hidden sm:block">
+                      <div className="flex flex-col space-y-8">
+                        {displayedEvents.map((event, index) => {
+                          try {
+                            return (
+                              <motion.div
+                                key={event.id}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.1 }}
+                                className="flex items-start space-x-8 group"
+                              >
+                                {/* Timeline dot */}
+                                <div className="flex flex-col items-center">
+                                  <div className={`w-4 h-4 rounded-full border-4 border-white shadow-lg ${
+                                    event.isHighlight 
+                                      ? 'bg-gradient-to-r from-yellow-400 to-orange-500' 
+                                      : 'bg-gradient-to-r from-purple-500 to-pink-500'
+                                  }`} />
+                                  {index < displayedEvents.length - 1 && (
+                                    <div className="w-0.5 h-24 bg-gradient-to-b from-purple-500 to-pink-500 mt-2" />
+                                  )}
+                                </div>
+
+                                {/* Event content */}
+                                <div className="flex-1 pb-8">
+                                  <div className={`rounded-xl p-6 border hover:border-purple-500/40 transition-all duration-300 shadow-lg hover:shadow-xl relative ${
+                                    event.isHighlight 
+                                      ? 'bg-gradient-to-br from-yellow-900/40 to-orange-900/40 border-yellow-500/30' 
+                                      : 'bg-gradient-to-br from-purple-900/40 to-pink-900/40 border-purple-500/20'
+                                  }`}>
+                                    {event.isHighlight && (
+                                      <div className="absolute top-4 right-4 flex items-center space-x-2">
+                                        <span className="text-yellow-400 text-xs font-medium">Special Memory</span>
+                                        <Sparkles className="text-yellow-400" size={20} />
+                                      </div>
+                                    )}
+
+                                    {/* Edit button */}
+                                    <button
+                                      onClick={() => openEditModal(event)}
+                                      className="absolute bottom-4 right-4 p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors shadow-lg backdrop-blur-sm"
+                                      title="Edit memory"
+                                    >
+                                      <span className="text-white text-xs">✏️</span>
+                                    </button>
+                                    
+                                    <div className="flex flex-col lg:flex-row lg:space-x-6">
+                                      <div className="flex-1">
+                                        {event.category && (
+                                          <div className="text-blue-300 mb-1 text-xs uppercase tracking-wide">
+                                            {event.category.replace('_', ' ')}
+                                          </div>
+                                        )}
+                                        <div className="text-purple-300 mb-2 text-sm">
+                                          {formatDate(event.date)}
+                                        </div>
+                                        <h3 className="text-2xl font-bold text-white mb-4 leading-tight">
+                                          {event.title}
+                                        </h3>
+                                        {event.emotions && event.emotions.length > 0 && (
+                                          <div className="flex flex-wrap gap-2 mb-4">
+                                            {event.emotions.map((emotion, i) => (
+                                              <span key={i} className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded-full">
+                                                {emotion}
+                                              </span>
+                                            ))}
+                                          </div>
+                                        )}
+                                        <div className="max-h-48 overflow-y-auto pr-2">
+                                          <p className="text-white/80 text-sm whitespace-pre-wrap leading-relaxed">
+                                            {event.description}
+                                          </p>
+                                        </div>
+                                        
+                                        {/* Additional memory fields */}
+                                        <AdditionalMemoryFields event={event} />
+                                      </div>
+                                      
+                                      <div className="lg:w-80 mt-4 lg:mt-0 flex-shrink-0">
+                                        <MinimalTimelineImage
+                                          event={event}
+                                          className="w-full h-64 object-cover rounded-lg shadow-xl border border-purple-500/30"
+                                          onImageClick={handleImageClick}
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            );
+                          } catch (error) {
+                            console.error('Error rendering event:', event.id, error);
+                            return (
+                              <div key={event.id} className="p-4 bg-red-900/20 border border-red-500/30 rounded-lg">
+                                <p className="text-red-400 text-sm">Error displaying memory: {event.title}</p>
+                              </div>
+                            );
+                          }
+                        })}
+                        
+                        {/* Load more section */}
+                        {hasMorePages && (
+                          <div ref={sentinelRef} className="flex justify-center py-8">
+                            {isLoadingMore ? (
+                              <div className="flex items-center space-x-2 text-purple-400">
+                                <Loader className="animate-spin h-5 w-5" />
+                                <span>Loading more memories...</span>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={loadNextPage}
+                                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300"
+                              >
+                                Load More Memories
+                              </button>
+                            )}
+                          </div>
+                        )}
+                        
+                        {!hasMorePages && displayedEvents.length > 0 && (
+                          <div className="text-center py-8">
+                            <div className="text-gray-400 text-sm">
+                              ✨ You've explored all your beautiful memories ✨
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
+                </>
+              );
+            } catch (error) {
+              console.error('Error rendering timeline content:', error);
+              setRenderingError('Error rendering timeline content. Please refresh.');
+              return (
+                <div className="text-center py-20">
+                  <div className="text-red-400 text-lg mb-4">Error displaying timeline</div>
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300"
+                  >
+                    Refresh Page
+                  </button>
                 </div>
-              )}
-            </>
-          )}
+              );
+            }
+          })()}
         </div>
       </div>
 
