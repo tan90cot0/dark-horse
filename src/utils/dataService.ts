@@ -390,7 +390,7 @@ class DataService {
   // Get timeline events for specific page only
   async getTimelineEventsPage(page: number = 0): Promise<{ events: TimelineEvent[]; hasMore: boolean; total: number }> {
     try {
-      // Get localStorage events first (these should appear at the top)
+      // Get localStorage events first (these should appear by date, not at top)
       const localStorageEvents = await this.getLocalStorageEvents();
       
       // Get list of original event IDs that have been overridden
@@ -400,36 +400,48 @@ class DataService {
           .map(event => event.originalEventId!)
       );
       
-      // If this is the first page, include localStorage events
+      // Debug logging for override detection
+      if (overriddenEventIds.size > 0) {
+        console.log('🔍 Override Detection Debug:');
+        console.log('Overridden event IDs:', Array.from(overriddenEventIds));
+        localStorageEvents
+          .filter(event => event.originalEventId)
+          .forEach(event => {
+            console.log(`localStorage event "${event.title}" overrides original ID: ${event.originalEventId}`);
+          });
+      }
+      
       if (page === 0) {
+        // For first page, load JSON events and combine with localStorage
         const metadata = await this.loadMemoryMetadata();
         const memories = await this.loadMemoryPage(0);
-        const jsonEvents = memories
-          .map(memory => this.convertMemoryToTimelineEvent(memory))
-          .filter(event => !overriddenEventIds.has(event.id)); // Filter out overridden events
+        const allJsonEvents = memories.map(memory => this.convertMemoryToTimelineEvent(memory));
         
-        // Sort JSON events
-        jsonEvents.sort((a, b) => {
-          if (!a.date && !b.date) return 0;
-          if (!a.date) return 1;
-          if (!b.date) return -1;
-          return new Date(b.date).getTime() - new Date(a.date).getTime(); // Newest first
-        });
+        // Debug: Show which events are being filtered
+        const filteredOutEvents = allJsonEvents.filter(event => overriddenEventIds.has(event.id));
+        if (filteredOutEvents.length > 0) {
+          console.log('🚫 Filtering out overridden JSON events:');
+          filteredOutEvents.forEach(event => {
+            console.log(`  - "${event.title}" (ID: ${event.id}) - overridden by localStorage`);
+          });
+        }
         
-        // Sort localStorage events
-        localStorageEvents.sort((a, b) => {
-          if (!a.date && !b.date) return 0;
-          if (!a.date) return 1;
-          if (!b.date) return -1;
-          return new Date(b.date).getTime() - new Date(a.date).getTime(); // Newest first
-        });
+        const jsonEvents = allJsonEvents.filter(event => !overriddenEventIds.has(event.id)); // Filter out overridden events
         
-        // Combine: localStorage events first, then JSON events
+        // Combine all events and sort by date
         const allEvents = [...localStorageEvents, ...jsonEvents];
+        
+        // Sort ALL events by date (newest first), regardless of source
+        allEvents.sort((a, b) => {
+          if (!a.date && !b.date) return 0;
+          if (!a.date) return 1;
+          if (!b.date) return -1;
+          return new Date(b.date).getTime() - new Date(a.date).getTime();
+        });
         
         const hasMore = (page + 1) * this.PAGE_SIZE < metadata.total;
         
-        console.log(`Page ${page}: ${localStorageEvents.length} localStorage + ${jsonEvents.length} JSON events (${overriddenEventIds.size} filtered) = ${allEvents.length} total, hasMore: ${hasMore}`);
+        console.log(`Page ${page}: ${localStorageEvents.length} localStorage + ${jsonEvents.length} JSON events (${overriddenEventIds.size} overridden) = ${allEvents.length} total, sorted by date`);
         
         return {
           events: allEvents,
@@ -444,17 +456,17 @@ class DataService {
           .map(memory => this.convertMemoryToTimelineEvent(memory))
           .filter(event => !overriddenEventIds.has(event.id)); // Filter out overridden events
         
-        // Sort this page only
+        // Sort by date
         events.sort((a, b) => {
           if (!a.date && !b.date) return 0;
           if (!a.date) return 1;
           if (!b.date) return -1;
-          return new Date(b.date).getTime() - new Date(a.date).getTime(); // Newest first
+          return new Date(b.date).getTime() - new Date(a.date).getTime();
         });
 
         const hasMore = (page + 1) * this.PAGE_SIZE < metadata.total;
         
-        console.log(`Page ${page}: ${events.length} JSON events (filtered), hasMore: ${hasMore}`);
+        console.log(`Page ${page}: ${events.length} JSON events (${overriddenEventIds.size} overridden), sorted by date`);
         
         return {
           events,
@@ -466,6 +478,12 @@ class DataService {
       console.error('Error getting timeline events page:', error);
       // Fallback to localStorage events only
       const localStorageEvents = await this.getLocalStorageEvents();
+      localStorageEvents.sort((a, b) => {
+        if (!a.date && !b.date) return 0;
+        if (!a.date) return 1;
+        if (!b.date) return -1;
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      });
       return { events: localStorageEvents, hasMore: false, total: localStorageEvents.length };
     }
   }
