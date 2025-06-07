@@ -14,20 +14,36 @@ function Surprise() {
   const moveNoButton = () => {
     if (noButtonRef.current) {
       const button = noButtonRef.current;
-      const container = button.parentElement;
+      const buttonRect = button.getBoundingClientRect();
       
-      if (container) {
-        const containerRect = container.getBoundingClientRect();
-        const buttonRect = button.getBoundingClientRect();
+      // Use the entire viewport as the playground
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      
+      // Account for button size and some padding from edges
+      const buttonWidth = buttonRect.width;
+      const buttonHeight = buttonRect.height;
+      const padding = 20;
+      
+      // Calculate safe movement area
+      const maxX = viewportWidth - buttonWidth - padding;
+      const maxY = viewportHeight - buttonHeight - padding;
+      
+      // Generate random position with some minimum distance from current position
+      const minDistance = 100; // Minimum distance to move
+      let randomX, randomY, distance;
+      
+      do {
+        randomX = Math.floor(Math.random() * maxX) + padding;
+        randomY = Math.floor(Math.random() * maxY) + padding;
         
-        const maxX = containerRect.width - buttonRect.width;
-        const maxY = containerRect.height - buttonRect.height;
-        
-        const randomX = Math.floor(Math.random() * maxX);
-        const randomY = Math.floor(Math.random() * maxY);
-        
-        setNoButtonPosition({ x: randomX, y: randomY });
-      }
+        // Calculate distance from current position
+        const currentX = noButtonPosition.x || (viewportWidth / 2);
+        const currentY = noButtonPosition.y || (viewportHeight / 2);
+        distance = Math.sqrt(Math.pow(randomX - currentX, 2) + Math.pow(randomY - currentY, 2));
+      } while (distance < minDistance);
+      
+      setNoButtonPosition({ x: randomX, y: randomY });
     }
   };
 
@@ -114,31 +130,16 @@ function Surprise() {
                     />
                   </motion.div>
 
-                  {/* Buttons */}
-                  <div className="relative h-32 flex items-center justify-center">
+                  {/* Buttons Container - Much larger playground area */}
+                  <div className="relative min-h-[300px] flex items-center justify-center">
+                    {/* Yes Button - Fixed position */}
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={handleYesClick}
-                      className="absolute left-1/2 transform -translate-x-1/2 -translate-x-24 px-12 py-4 bg-gradient-to-r from-pink-600 to-purple-600 rounded-full text-white font-bold text-xl shadow-lg hover:from-pink-700 hover:to-purple-700 transition-all duration-300"
+                      className="px-12 py-4 bg-gradient-to-r from-pink-600 to-purple-600 rounded-full text-white font-bold text-xl shadow-lg hover:from-pink-700 hover:to-purple-700 transition-all duration-300"
                     >
                       Yes! 💕
-                    </motion.button>
-
-                    <motion.button
-                      ref={noButtonRef}
-                      onMouseEnter={moveNoButton}
-                      onFocus={moveNoButton}
-                      style={{
-                        position: 'absolute',
-                        left: `${noButtonPosition.x}px`,
-                        top: `${noButtonPosition.y}px`,
-                        right: 'auto',
-                        transform: noButtonPosition.x === 0 && noButtonPosition.y === 0 ? 'translateX(96px)' : 'none'
-                      }}
-                      className="px-12 py-4 bg-white/10 border border-white/20 rounded-full text-white font-bold text-xl shadow-lg hover:bg-white/20 transition-all duration-300"
-                    >
-                      No 😢
                     </motion.button>
                   </div>
                 </>
@@ -212,6 +213,34 @@ function Surprise() {
           </motion.div>
         </div>
       </div>
+
+      {/* No Button - Positioned absolutely to move anywhere on screen */}
+      {!hasAnswered && (
+        <motion.button
+          ref={noButtonRef}
+          onMouseEnter={moveNoButton}
+          onFocus={moveNoButton}
+          animate={{
+            x: noButtonPosition.x,
+            y: noButtonPosition.y,
+          }}
+          transition={{
+            type: "spring",
+            stiffness: 300,
+            damping: 30,
+          }}
+          style={{
+            position: 'fixed',
+            left: noButtonPosition.x === 0 ? '50%' : '0px',
+            top: noButtonPosition.y === 0 ? '60%' : '0px',
+            transform: noButtonPosition.x === 0 && noButtonPosition.y === 0 ? 'translate(-50%, -50%) translateX(150px)' : 'none',
+            zIndex: 50,
+          }}
+          className="px-12 py-4 bg-white/10 border border-white/20 rounded-full text-white font-bold text-xl shadow-lg hover:bg-white/20 transition-all duration-300"
+        >
+          No 😢
+        </motion.button>
+      )}
     </div>
   );
 }
