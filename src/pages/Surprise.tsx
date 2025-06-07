@@ -1,14 +1,43 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, Sparkles } from 'lucide-react';
+import { Heart, Sparkles, RefreshCw } from 'lucide-react';
+import surpriseService, { SurpriseContent } from '../services/surpriseService';
 
 function Surprise() {
   const [hasAnswered, setHasAnswered] = useState(false);
   const [noButtonPosition, setNoButtonPosition] = useState({ x: 0, y: 0 });
+  const [content, setContent] = useState<SurpriseContent | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isGenerating, setIsGenerating] = useState(false);
   const noButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Load initial content
+  useEffect(() => {
+    generateNewContent();
+  }, []);
+
+  const generateNewContent = async () => {
+    setIsLoading(true);
+    setIsGenerating(true);
+    try {
+      const newContent = await surpriseService.generateSurpriseContent();
+      setContent(newContent);
+    } catch (error) {
+      console.error('Failed to generate content:', error);
+    } finally {
+      setIsLoading(false);
+      setIsGenerating(false);
+    }
+  };
 
   const handleYesClick = () => {
     setHasAnswered(true);
+  };
+
+  const handleAskAgain = async () => {
+    setHasAnswered(false);
+    setNoButtonPosition({ x: 0, y: 0 }); // Reset button position
+    await generateNewContent();
   };
 
   const moveNoButton = () => {
@@ -46,6 +75,39 @@ function Surprise() {
       setNoButtonPosition({ x: randomX, y: randomY });
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 text-white flex items-center justify-center">
+        <div className="text-center">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            className="w-16 h-16 mx-auto mb-4"
+          >
+            <Heart className="w-full h-full text-pink-400" />
+          </motion.div>
+          <p className="text-xl text-gray-300">Generating something special for you... 💕</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!content) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 text-white flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-xl text-gray-300 mb-4">Oops! Something went wrong.</p>
+          <button
+            onClick={generateNewContent}
+            className="px-6 py-3 bg-gradient-to-r from-pink-600 to-purple-600 rounded-full text-white font-medium hover:from-pink-700 hover:to-purple-700 transition-all duration-300"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 text-white">
@@ -96,6 +158,15 @@ function Surprise() {
             >
               <Heart className="text-pink-400 mr-2" size={18} />
               <span className="text-base font-medium">A Special Question</span>
+              {isGenerating && (
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  className="ml-2"
+                >
+                  <RefreshCw size={14} className="text-purple-400" />
+                </motion.div>
+              )}
             </motion.div>
 
             {/* Main content card */}
@@ -107,24 +178,27 @@ function Surprise() {
             >
               {!hasAnswered ? (
                 <>
-                  {/* Question */}
+                  {/* Dynamic Question */}
                   <motion.h1
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
+                    key={content.question} // Key for re-animation when content changes
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
                     className="text-4xl md:text-5xl font-bold mb-8 gradient-text"
                   >
-                    Will you be my coding partner forever?
+                    {content.question}
                   </motion.h1>
 
-                  {/* GIF */}
+                  {/* Dynamic GIF */}
                   <motion.div
+                    key={content.questionGif} // Key for re-animation when GIF changes
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.4 }}
                     className="mb-12 rounded-2xl overflow-hidden max-w-md mx-auto"
                   >
                     <img
-                      src="https://media.giphy.com/media/FTGah7Mx3ss04PcasF/giphy.gif"
+                      src={content.questionGif}
                       alt="Cute animated character"
                       className="w-full h-64 object-cover"
                     />
@@ -145,8 +219,9 @@ function Surprise() {
                 </>
               ) : (
                 <>
-                  {/* Success message */}
+                  {/* Dynamic Success message */}
                   <motion.div
+                    key={content.celebrationTitle} // Key for re-animation when content changes
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     className="text-center"
@@ -159,30 +234,31 @@ function Surprise() {
                     </motion.div>
                     
                     <h1 className="text-4xl md:text-5xl font-bold mb-6 gradient-text">
-                      Yay! Let's keep building amazing things together! 🎉
+                      {content.celebrationTitle}
                     </h1>
 
                     <motion.div
+                      key={content.celebrationGif} // Key for re-animation when GIF changes
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: 0.8 }}
                       className="mb-8 rounded-2xl overflow-hidden max-w-md mx-auto"
                     >
                       <img
-                        src="https://media.giphy.com/media/UMon0fuimoAN9ueUNP/giphy.gif"
+                        src={content.celebrationGif}
                         alt="Celebration"
                         className="w-full h-64 object-cover"
                       />
                     </motion.div>
 
                     <motion.p
+                      key={content.celebrationMessage} // Key for re-animation when content changes
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: 1 }}
                       className="text-xl text-gray-300 mb-8"
                     >
-                      Here's to many more coding adventures, late-night debugging sessions, 
-                      and celebrating every small victory together! 💻✨
+                      {content.celebrationMessage}
                     </motion.p>
 
                     <motion.button
@@ -191,10 +267,23 @@ function Surprise() {
                       transition={{ delay: 1.2 }}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      onClick={() => setHasAnswered(false)}
-                      className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full text-white font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
+                      onClick={handleAskAgain}
+                      disabled={isGenerating}
+                      className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full text-white font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
-                      Ask me again! 😊
+                      {isGenerating ? (
+                        <>
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          >
+                            <RefreshCw size={16} />
+                          </motion.div>
+                          Generating...
+                        </>
+                      ) : (
+                        'Ask me again! 😊'
+                      )}
                     </motion.button>
                   </motion.div>
                 </>
@@ -209,6 +298,8 @@ function Surprise() {
               className="mt-8 text-sm text-gray-400 italic"
             >
               A little surprise from your coding companion 💝
+              <br />
+              <span className="text-xs">Powered by AI magic ✨</span>
             </motion.p>
           </motion.div>
         </div>
