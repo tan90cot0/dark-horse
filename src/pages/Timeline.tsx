@@ -20,6 +20,14 @@ const TimelineImage = React.memo(({
   const [shouldLoad, setShouldLoad] = useState(false);
   const imgRef = useRef<HTMLDivElement>(null);
 
+  // Check if there's actually an image to load
+  const hasImage = event.image && event.image !== 'placeholder' && event.image !== '';
+  
+  // If no image exists, don't render anything
+  if (!hasImage) {
+    return null;
+  }
+
   // Intersection observer for better performance
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -465,8 +473,11 @@ function Timeline() {
         image: formData.image || ''
       };
 
-      const savedEvent = await dataService.addTimelineEvent(newEvent);
-      setDisplayedEvents(prev => [savedEvent, ...prev]);
+      await dataService.addTimelineEvent(newEvent);
+      
+      // Reload the entire timeline to ensure proper chronological sorting
+      await loadInitialEvents();
+      
       closeModal();
       showSuccess('Memory saved!', 'Your new memory has been added to the timeline.');
     } catch (error) {
@@ -514,19 +525,10 @@ function Timeline() {
         image: formData.image || ''
       };
 
-      const updatedEvent = await dataService.updateTimelineEvent(editingEvent.id, updatedData);
+      await dataService.updateTimelineEvent(editingEvent.id, updatedData);
       
-      // Check if the event ID changed (indicates it was converted from JSON to localStorage)
-      if (updatedEvent.id !== editingEvent.id) {
-        // Remove the old JSON event and add the new localStorage event
-        setDisplayedEvents(prev => {
-          const filtered = prev.filter(e => e.id !== editingEvent.id);
-          return [updatedEvent, ...filtered];
-        });
-      } else {
-        // Normal update - same ID
-        setDisplayedEvents(prev => prev.map(e => e.id === editingEvent.id ? updatedEvent : e));
-      }
+      // Reload the entire timeline to ensure proper chronological sorting
+      await loadInitialEvents();
       
       closeEditModal();
       showSuccess('Memory updated!', 'Your memory has been successfully updated.');
@@ -834,11 +836,14 @@ function Timeline() {
                                 <ExpandableText text={event.description} maxLength={150} />
                               </div>
                               
-                              <TimelineImage 
-                                event={event} 
-                                className="w-full h-32 object-cover rounded-lg" 
-                                onImageClick={openImageModal} 
-                              />
+                              {/* Only show image if it exists */}
+                              {event.image && event.image !== 'placeholder' && event.image !== '' && (
+                                <TimelineImage 
+                                  event={event} 
+                                  className="w-full h-32 object-cover rounded-lg" 
+                                  onImageClick={openImageModal} 
+                                />
+                              )}
                               
                               <div className="flex justify-end pt-2">
                   <button 
@@ -910,7 +915,9 @@ function Timeline() {
                             {/* Desktop layout: content on left, image on right */}
                             <div className="flex flex-col lg:flex-row lg:min-h-[280px]">
                               {/* Left side - Content */}
-                              <div className="flex-1 p-6 space-y-3 lg:flex lg:flex-col lg:justify-center">
+                              <div className={`flex-1 p-6 space-y-3 lg:flex lg:flex-col lg:justify-center ${
+                                event.image && event.image !== 'placeholder' && event.image !== '' ? '' : 'lg:max-w-none'
+                              }`}>
                                 {event.category && (
                                   <div className="text-blue-300 text-xs uppercase tracking-wide">
                                     {event.category.replace('_', ' ')}
@@ -963,14 +970,16 @@ function Timeline() {
                                 </div>
                         </div>
                         
-                              {/* Right side - Image (properly centered) */}
-                              <div className="lg:w-80 lg:p-6 lg:flex lg:items-center lg:justify-center">
-                                <TimelineImage 
-                                  event={event} 
-                                  className="w-full h-64 object-cover rounded-lg shadow-xl border border-purple-500/30" 
-                                  onImageClick={openImageModal} 
-                                />
-                              </div>
+                              {/* Right side - Image (only if image exists) */}
+                              {event.image && event.image !== 'placeholder' && event.image !== '' && (
+                                <div className="lg:w-80 lg:p-6 lg:flex lg:items-center lg:justify-center">
+                                  <TimelineImage 
+                                    event={event} 
+                                    className="w-full h-64 object-cover rounded-lg shadow-xl border border-purple-500/30" 
+                                    onImageClick={openImageModal} 
+                                  />
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>
