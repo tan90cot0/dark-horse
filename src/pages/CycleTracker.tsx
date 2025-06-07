@@ -22,15 +22,29 @@ function CycleTracker() {
     isPeriodStart: false
   });
 
-  // ONLY the historical period start dates - these are just markers
-  const historicalPeriodDates = [
+  // Historical period start dates - EXACT dates as given
+  const historicalPeriods = [
+    // 2021
+    '2021-01-15', '2021-02-06', '2021-03-12', '2021-04-06', '2021-05-01', '2021-05-28',
+    '2021-06-24', '2021-07-22', '2021-08-24', '2021-09-24', '2021-10-22', '2021-11-20', '2021-12-16',
+    
+    // 2022
+    '2022-01-18', '2022-02-22', '2022-03-22', '2022-04-19', '2022-05-20', '2022-06-17',
+    '2022-07-13', '2022-08-11', '2022-09-09', '2022-10-08', '2022-11-06', '2022-12-05', '2022-12-30',
+    
+    // 2023
+    '2023-01-31', '2023-03-01', '2023-03-29', '2023-04-26', '2023-05-24', '2023-06-21',
+    '2023-07-20', '2023-08-20', '2023-09-18', '2023-10-17', '2023-11-14', '2023-12-14',
+    
+    // 2024
     '2024-01-12', '2024-02-07', '2024-03-15', '2024-04-12', '2024-05-08', '2024-06-02',
-    '2024-07-05', '2024-07-31', '2024-08-26', '2024-09-24', '2024-10-22', '2024-11-17',
-    '2024-12-16', '2025-01-16', '2025-02-14', '2025-03-16', '2025-04-11', '2025-05-06',
-    '2025-06-02'
+    '2024-07-05', '2024-07-31', '2024-08-26', '2024-09-24', '2024-10-22', '2024-11-17', '2024-12-16',
+    
+    // 2025
+    '2025-01-16', '2025-02-14', '2025-03-16', '2025-04-11', '2025-05-06', '2025-06-02'
   ];
 
-  // The current period we're tracking (last one in the list)
+  // Current period start (last one in the list)
   const currentPeriodStart = '2025-06-02';
 
   const cyclePhases = [
@@ -45,99 +59,93 @@ function CycleTracker() {
     'Mood swings', 'Acne', 'Food cravings', 'Back pain', 'Nausea'
   ];
 
-  // Calculate cycle phases ONLY for current period
-  const calculateCurrentCyclePhases = (periodStart: string) => {
-    const startDate = new Date(periodStart);
+  // Generate current cycle phases automatically
+  const generateCurrentCycle = () => {
+    const startDate = new Date(currentPeriodStart);
     const phases = [];
     
-    // Menstrual phase: days 1-5
-    for (let i = 0; i < 5; i++) {
+    // Day 1: Period start (June 2)
+    phases.push({
+      date: currentPeriodStart,
+      phase: 'menstrual' as const,
+      symptoms: [],
+      notes: '',
+      isPeriodStart: true
+    });
+    
+    // Days 2-5: Menstrual phase (June 3-6)
+    for (let i = 1; i < 5; i++) {
       const date = new Date(startDate);
       date.setDate(startDate.getDate() + i);
       phases.push({
         date: date.toISOString().split('T')[0],
         phase: 'menstrual' as const,
-        isPeriodStart: i === 0
+        symptoms: [],
+        notes: '',
+        isPeriodStart: false
       });
     }
     
-    // Follicular phase: days 6-13
+    // Days 6-13: Follicular phase (June 7-14)
     for (let i = 5; i < 13; i++) {
       const date = new Date(startDate);
       date.setDate(startDate.getDate() + i);
       phases.push({
         date: date.toISOString().split('T')[0],
-        phase: 'follicular' as const
+        phase: 'follicular' as const,
+        symptoms: [],
+        notes: '',
+        isPeriodStart: false
       });
     }
     
-    // Ovulation phase: days 14-16
+    // Days 14-16: Ovulation phase (June 15-17)
     for (let i = 13; i < 16; i++) {
       const date = new Date(startDate);
       date.setDate(startDate.getDate() + i);
       phases.push({
         date: date.toISOString().split('T')[0],
-        phase: 'ovulation' as const
+        phase: 'ovulation' as const,
+        symptoms: [],
+        notes: '',
+        isPeriodStart: false
       });
     }
     
-    // Luteal phase: days 17-28
+    // Days 17-28: Luteal phase (June 18-30)
     for (let i = 16; i < 28; i++) {
       const date = new Date(startDate);
       date.setDate(startDate.getDate() + i);
       phases.push({
         date: date.toISOString().split('T')[0],
-        phase: 'luteal' as const
+        phase: 'luteal' as const,
+        symptoms: [],
+        notes: '',
+        isPeriodStart: false
       });
     }
     
     return phases;
   };
 
-  // Get the latest period start date (including user-added ones)
-  const getLatestPeriodDate = () => {
-    const userAddedPeriods = entries
-      .filter(entry => entry.isPeriodStart)
-      .map(entry => entry.date);
-    
-    const allPeriods = [...historicalPeriodDates, ...userAddedPeriods];
-    allPeriods.sort();
-    
-    return allPeriods[allPeriods.length - 1];
-  };
-
-  // Initialize ONLY current cycle tracking
+  // Initialize everything automatically on load
   useEffect(() => {
-    const savedEntries = localStorage.getItem('cycleEntries');
+    console.log('Initializing cycle tracker...');
+    console.log('Historical periods:', historicalPeriods);
+    console.log('Current period start:', currentPeriodStart);
     
-    if (savedEntries) {
-      setEntries(JSON.parse(savedEntries));
-    } else {
-      // Generate ONLY current cycle tracking
-      initializeCurrentCycle();
-    }
-  }, []);
+    // Always generate fresh current cycle data
+    const currentCycle = generateCurrentCycle();
+    console.log('Generated current cycle:', currentCycle.length, 'entries');
+    
+    setEntries(currentCycle);
+  }, []); // Empty dependency array means this runs once on mount
 
-  const initializeCurrentCycle = () => {
-    const latestPeriod = getLatestPeriodDate();
-    console.log('Initializing cycle from:', latestPeriod);
-    
-    const currentCycleEntries = calculateCurrentCyclePhases(latestPeriod).map(phase => ({
-      date: phase.date,
-      phase: phase.phase,
-      symptoms: [],
-      notes: '',
-      isPeriodStart: phase.isPeriodStart || false
-    }));
-    
-    console.log('Current cycle entries:', currentCycleEntries.length);
-    setEntries(currentCycleEntries);
-  };
-
-  // Save data to localStorage
+  // Save data to localStorage when entries change
   useEffect(() => {
     if (entries.length > 0) {
       localStorage.setItem('cycleEntries', JSON.stringify(entries));
+      console.log('Saved', entries.length, 'entries to localStorage');
     }
   }, [entries]);
 
@@ -171,17 +179,40 @@ function CycleTracker() {
     
     console.log('Marking new period start:', selectedDate);
     
-    // Generate NEW cycle phases from this date
-    const newCyclePhases = calculateCurrentCyclePhases(selectedDate).map(phase => ({
-      date: phase.date,
-      phase: phase.phase,
-      symptoms: [] as string[],
-      notes: '',
-      isPeriodStart: phase.isPeriodStart || false
-    }));
+    // Generate new cycle from selected date
+    const startDate = new Date(selectedDate);
+    const newCycle = [];
     
-    // Replace ALL entries with new cycle
-    setEntries(newCyclePhases);
+    // Day 1: Period start
+    newCycle.push({
+      date: selectedDate,
+      phase: 'menstrual' as const,
+      symptoms: [],
+      notes: '',
+      isPeriodStart: true
+    });
+    
+    // Days 2-28: Continue cycle
+    for (let i = 1; i < 28; i++) {
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + i);
+      
+      let phase: 'menstrual' | 'follicular' | 'ovulation' | 'luteal';
+      if (i < 5) phase = 'menstrual';
+      else if (i < 13) phase = 'follicular';
+      else if (i < 16) phase = 'ovulation';
+      else phase = 'luteal';
+      
+      newCycle.push({
+        date: date.toISOString().split('T')[0],
+        phase,
+        symptoms: [],
+        notes: '',
+        isPeriodStart: false
+      });
+    }
+    
+    setEntries(newCycle);
     setSelectedDate('');
     setCurrentEntry({
       date: '',
@@ -212,17 +243,20 @@ function CycleTracker() {
   };
 
   const getNextPeriodPrediction = () => {
-    // Use ALL historical dates for prediction
-    const userAddedPeriods = entries
-      .filter(entry => entry.isPeriodStart)
+    // Include current period start in calculation
+    const allPeriods = [...historicalPeriods];
+    
+    // Add any new periods marked by user
+    const userPeriods = entries
+      .filter(entry => entry.isPeriodStart && !historicalPeriods.includes(entry.date))
       .map(entry => entry.date);
     
-    const allPeriods = [...historicalPeriodDates, ...userAddedPeriods];
+    allPeriods.push(...userPeriods);
     allPeriods.sort();
     
     if (allPeriods.length < 2) return null;
     
-    // Calculate average cycle length
+    // Calculate average cycle length from historical data
     const cycles = [];
     for (let i = 1; i < allPeriods.length; i++) {
       const diff = Math.abs(new Date(allPeriods[i]).getTime() - new Date(allPeriods[i-1]).getTime());
@@ -231,7 +265,9 @@ function CycleTracker() {
     
     const averageCycle = Math.round(cycles.reduce((a, b) => a + b, 0) / cycles.length);
     const lastPeriod = new Date(allPeriods[allPeriods.length - 1]);
-    const nextPeriod = new Date(lastPeriod.getTime() + (averageCycle * 24 * 60 * 60 * 1000));
+    
+    // For current cycle, use 28 days (since we're tracking a 28-day cycle)
+    const nextPeriod = new Date(lastPeriod.getTime() + (28 * 24 * 60 * 60 * 1000));
     
     return { nextPeriod, averageCycle, lastPeriod, totalCycles: allPeriods.length };
   };
@@ -277,12 +313,18 @@ function CycleTracker() {
             return <div key={index} className="h-12"></div>;
           }
           
-          const dateString = date.toISOString().split('T')[0];
-          const isToday = dateString === today.toISOString().split('T')[0];
+          // Fix timezone issue by formatting date properly
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          const dateString = `${year}-${month}-${day}`;
+          
+          const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+          const isToday = dateString === todayString;
           const isSelected = dateString === selectedDate;
           
-          // Check if this is a historical period start date
-          const isHistoricalPeriod = historicalPeriodDates.includes(dateString);
+          // Check if this is a historical period (excluding current period which is tracked)
+          const isHistoricalPeriod = historicalPeriods.includes(dateString) && dateString !== currentPeriodStart;
           
           // Check if this is part of current cycle tracking
           const currentCycleEntry = entries.find(entry => entry.date === dateString);
@@ -304,20 +346,19 @@ function CycleTracker() {
               </div>
               
               <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 flex gap-1">
-                {/* Show historical period markers - ONLY small dots */}
-                {isHistoricalPeriod && !currentCycleEntry && (
+                {/* Historical period markers - small red dots */}
+                {isHistoricalPeriod && (
                   <div className="w-2 h-2 rounded-full bg-red-400 opacity-70"></div>
                 )}
                 
-                {/* Show current cycle tracking */}
+                {/* Current cycle tracking */}
                 {currentCycleEntry && (
                   <>
-                    {currentCycleEntry.phase !== 'none' && (
-                      <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${cyclePhases.find(p => p.name === currentCycleEntry.phase)?.color}`}></div>
-                    )}
-                    {currentCycleEntry.isPeriodStart && (
+                    {currentCycleEntry.isPeriodStart ? (
                       <div className="w-3 h-3 rounded-full bg-red-500 ring-2 ring-white"></div>
-                    )}
+                    ) : currentCycleEntry.phase !== 'none' ? (
+                      <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${cyclePhases.find(p => p.name === currentCycleEntry.phase)?.color}`}></div>
+                    ) : null}
                   </>
                 )}
               </div>
@@ -337,7 +378,6 @@ function CycleTracker() {
   };
 
   const daysUntilNext = getDaysUntilNextPeriod();
-  const latestPeriod = getLatestPeriodDate();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 text-white">
@@ -365,14 +405,7 @@ function CycleTracker() {
               <span className="text-base font-medium">Wellness Tracker</span>
             </motion.div>
             <h1 className="text-4xl font-bold gradient-text mb-2">Cycle Tracker</h1>
-            <p className="text-gray-400">Track your current cycle with love and care 💕</p>
-          </div>
-
-          {/* Current Status */}
-          <div className="mb-4 p-4 bg-white/5 rounded-lg text-sm">
-            <p>Current cycle tracking: From {new Date(latestPeriod).toLocaleDateString()}</p>
-            <p>Active phase tracking: {entries.length} days</p>
-            <p>Historical period markers: {historicalPeriodDates.length} total</p>
+            <p className="text-gray-400">Track your cycle with love and care 💕</p>
           </div>
 
           {/* Next Period Prediction Card */}
@@ -501,7 +534,7 @@ function CycleTracker() {
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full bg-red-500 ring-2 ring-white"></div>
-                      <span className="text-gray-300">Current Period Start</span>
+                      <span className="text-gray-300">Period Start</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-red-400 opacity-70"></div>
@@ -541,54 +574,6 @@ function CycleTracker() {
                       </p>
                     </div>
 
-                    {/* Cycle Phase */}
-                    <div className="mb-6">
-                      <label className="block text-sm font-medium mb-3">Cycle Phase</label>
-                      <div className="grid grid-cols-2 gap-2">
-                        {cyclePhases.map(phase => {
-                          const Icon = phase.icon;
-                          return (
-                            <button
-                              key={phase.name}
-                              onClick={() => setCurrentEntry(prev => ({ ...prev, phase: phase.name as any }))}
-                              className={`
-                                p-3 rounded-xl border transition-all duration-200 flex flex-col items-center gap-2
-                                ${currentEntry.phase === phase.name
-                                  ? `bg-gradient-to-r ${phase.color} border-white/30`
-                                  : 'border-white/10 hover:border-white/20 bg-white/5'
-                                }
-                              `}
-                            >
-                              <Icon size={20} />
-                              <span className="text-xs">{phase.label}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Symptoms */}
-                    <div className="mb-6">
-                      <label className="block text-sm font-medium mb-3">Symptoms</label>
-                      <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
-                        {symptoms.map(symptom => (
-                          <button
-                            key={symptom}
-                            onClick={() => handleSymptomToggle(symptom)}
-                            className={`
-                              p-2 text-xs rounded-lg border transition-all duration-200
-                              ${currentEntry.symptoms.includes(symptom)
-                                ? 'bg-pink-500/20 border-pink-400/50 text-pink-200'
-                                : 'border-white/10 hover:border-white/20 bg-white/5'
-                              }
-                            `}
-                          >
-                            {symptom}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
                     {/* Notes */}
                     <div className="mb-6">
                       <label className="block text-sm font-medium mb-3">Notes</label>
@@ -597,7 +582,7 @@ function CycleTracker() {
                         onChange={(e) => setCurrentEntry(prev => ({ ...prev, notes: e.target.value }))}
                         placeholder="How are you feeling today?"
                         className="w-full p-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:border-purple-400 focus:outline-none resize-none"
-                        rows={3}
+                        rows={4}
                       />
                     </div>
 

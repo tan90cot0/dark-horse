@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Plus, Star, ChevronRight, ChevronLeft, Trash2, Edit, Save, X } from 'lucide-react';
+import { Calendar, Plus, Star, ChevronRight, ChevronLeft, Trash2, Edit, Save, X, Image as ImageIcon } from 'lucide-react';
 import dataService, { TimelineEvent } from '../utils/dataService';
 import { useNotification } from '../context/NotificationContext';
 import LoadingSpinner from '../components/UI/LoadingSpinner';
@@ -163,6 +163,56 @@ function Timeline() {
     }
   };
   
+  // Image component with error handling
+  const TimelineImage = ({ src, alt, className, onError }: { 
+    src: string; 
+    alt: string; 
+    className: string; 
+    onError?: () => void;
+  }) => {
+    const [imageError, setImageError] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const handleImageError = () => {
+      setImageError(true);
+      setIsLoading(false);
+      onError?.();
+    };
+
+    const handleImageLoad = () => {
+      setIsLoading(false);
+    };
+
+    if (!src || imageError) {
+      return (
+        <div className={`${className} bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center`}>
+          <div className="text-center">
+            <ImageIcon size={48} className="mx-auto mb-2 text-gray-500" />
+            <p className="text-gray-400 text-sm">No image available</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="relative">
+        {isLoading && (
+          <div className={`${className} bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center absolute inset-0`}>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+          </div>
+        )}
+        <img 
+          src={src} 
+          alt={alt}
+          className={className}
+          onError={handleImageError}
+          onLoad={handleImageLoad}
+          style={{ display: isLoading ? 'none' : 'block' }}
+        />
+      </div>
+    );
+  };
+  
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 text-white flex items-center justify-center">
@@ -273,7 +323,7 @@ function Timeline() {
                     className="glass-effect border border-white/10 rounded-2xl overflow-hidden shadow-xl"
                   >
                     <div className="relative aspect-video">
-                      <img 
+                      <TimelineImage
                         src={events[activeIndex].image} 
                         alt={events[activeIndex].title}
                         className="w-full h-full object-cover"
@@ -354,7 +404,7 @@ function Timeline() {
                         <div className={`w-1/2 ${index % 2 === 0 ? 'pr-8' : 'pl-8'}`}>
                           <div className="glass-effect border border-white/10 rounded-2xl overflow-hidden shadow-xl group hover:shadow-2xl transition-all duration-300">
                             <div className="relative aspect-video">
-                              <img 
+                              <TimelineImage
                                 src={event.image} 
                                 alt={event.title}
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
