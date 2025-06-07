@@ -388,31 +388,72 @@ class DataService {
   // Get timeline events for specific page only
   async getTimelineEventsPage(page: number = 0): Promise<{ events: TimelineEvent[]; hasMore: boolean; total: number }> {
     try {
-      const metadata = await this.loadMemoryMetadata();
-      const memories = await this.loadMemoryPage(page);
+      // Get localStorage events first (these should appear at the top)
+      const localStorageEvents = await this.getLocalStorageEvents();
       
-      const events = memories.map(memory => this.convertMemoryToTimelineEvent(memory));
-      
-      // Sort this page only
-      events.sort((a, b) => {
-        if (!a.date && !b.date) return 0;
-        if (!a.date) return 1;
-        if (!b.date) return -1;
-        return new Date(a.date).getTime() - new Date(b.date).getTime();
-      });
+      // If this is the first page, include localStorage events
+      if (page === 0) {
+        const metadata = await this.loadMemoryMetadata();
+        const memories = await this.loadMemoryPage(0);
+        const jsonEvents = memories.map(memory => this.convertMemoryToTimelineEvent(memory));
+        
+        // Sort JSON events
+        jsonEvents.sort((a, b) => {
+          if (!a.date && !b.date) return 0;
+          if (!a.date) return 1;
+          if (!b.date) return -1;
+          return new Date(b.date).getTime() - new Date(a.date).getTime(); // Newest first
+        });
+        
+        // Sort localStorage events
+        localStorageEvents.sort((a, b) => {
+          if (!a.date && !b.date) return 0;
+          if (!a.date) return 1;
+          if (!b.date) return -1;
+          return new Date(b.date).getTime() - new Date(a.date).getTime(); // Newest first
+        });
+        
+        // Combine: localStorage events first, then JSON events
+        const allEvents = [...localStorageEvents, ...jsonEvents];
+        
+        const hasMore = (page + 1) * this.PAGE_SIZE < metadata.total;
+        
+        console.log(`Page ${page}: ${localStorageEvents.length} localStorage + ${jsonEvents.length} JSON events = ${allEvents.length} total, hasMore: ${hasMore}`);
+        
+        return {
+          events: allEvents,
+          hasMore,
+          total: metadata.total + localStorageEvents.length
+        };
+      } else {
+        // For subsequent pages, only load JSON file events
+        const metadata = await this.loadMemoryMetadata();
+        const memories = await this.loadMemoryPage(page);
+        const events = memories.map(memory => this.convertMemoryToTimelineEvent(memory));
+        
+        // Sort this page only
+        events.sort((a, b) => {
+          if (!a.date && !b.date) return 0;
+          if (!a.date) return 1;
+          if (!b.date) return -1;
+          return new Date(b.date).getTime() - new Date(a.date).getTime(); // Newest first
+        });
 
-      const hasMore = (page + 1) * this.PAGE_SIZE < metadata.total;
-      
-      console.log(`Page ${page}: ${events.length} events, hasMore: ${hasMore}`);
-      
-      return {
-        events,
-        hasMore,
-        total: metadata.total
-      };
+        const hasMore = (page + 1) * this.PAGE_SIZE < metadata.total;
+        
+        console.log(`Page ${page}: ${events.length} JSON events, hasMore: ${hasMore}`);
+        
+        return {
+          events,
+          hasMore,
+          total: metadata.total + localStorageEvents.length
+        };
+      }
     } catch (error) {
       console.error('Error getting timeline events page:', error);
-      return { events: [], hasMore: false, total: 0 };
+      // Fallback to localStorage events only
+      const localStorageEvents = await this.getLocalStorageEvents();
+      return { events: localStorageEvents, hasMore: false, total: localStorageEvents.length };
     }
   }
 
@@ -591,25 +632,53 @@ class DataService {
   }
 
   async updateTimelineEvent(eventId: string, updatedData: Partial<TimelineEvent>): Promise<TimelineEvent> {
-    const events = await this.getLocalStorageEvents();
-    const eventIndex = events.findIndex(event => event.id === eventId);
+    const localEvents = await this.getLocalStorageEvents();
+    const eventIndex = localEvents.findIndex(event => event.id === eventId);
     
     if (eventIndex === -1) {
-      throw new Error('Event not found');
+      // Event not found in localStorage, check if it's from main JSON files
+      // If so, we need to create a new event in localStorage with the updated data
+      console.log(`Event ${eventId} not found in localStorage, checking main data...`);
+      
+      // Try to find the event in the displayed events (could be from JSON files)
+      // Since we can't modify JSON file events, we'll create a new event in localStorage
+      const newEvent: TimelineEvent = {
+        id: this.generateId(), // Generate new ID for localStorage
+        title: updatedData.title || 'Updated Memory',
+        description: updatedData.description || '',
+        date: updatedData.date || '',
+        image: updatedData.image || '',
+        category: updatedData.category || '',
+        emotions: updatedData.emotions || [],
+        isHighlight: updatedData.isHighlight || false,
+        ...updatedData // Include all other fields
+      };
+      
+      // Add the new event to localStorage
+      localEvents.unshift(newEvent);
+      
+      try {
+        localStorage.setItem('timeline_events', JSON.stringify(localEvents));
+        console.log('New timeline event created in localStorage from JSON file event');
+        return newEvent;
+      } catch (error) {
+        console.error('Error creating new event in localStorage:', error);
+        throw new Error('Failed to update event - please try again');
+      }
     }
     
-    const updatedEvent = { ...events[eventIndex], ...updatedData };
-    events[eventIndex] = updatedEvent;
+    // Event found in localStorage, update it normally
+    const updatedEvent = { ...localEvents[eventIndex], ...updatedData };
+    localEvents[eventIndex] = updatedEvent;
     
     try {
-      localStorage.setItem('timeline_events', JSON.stringify(events));
+      localStorage.setItem('timeline_events', JSON.stringify(localEvents));
       console.log('Timeline event updated in localStorage');
+      return updatedEvent;
     } catch (error) {
       console.error('Error updating in localStorage:', error);
       throw new Error('Failed to update event');
     }
-    
-    return updatedEvent;
   }
 
   // Announcements (unchanged but minimal)

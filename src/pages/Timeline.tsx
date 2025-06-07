@@ -481,7 +481,19 @@ function Timeline() {
       };
 
       const updatedEvent = await dataService.updateTimelineEvent(editingEvent.id, updatedData);
-      setDisplayedEvents(prev => prev.map(e => e.id === editingEvent.id ? updatedEvent : e));
+      
+      // Check if the event ID changed (indicates it was converted from JSON to localStorage)
+      if (updatedEvent.id !== editingEvent.id) {
+        // Remove the old JSON event and add the new localStorage event
+        setDisplayedEvents(prev => {
+          const filtered = prev.filter(e => e.id !== editingEvent.id);
+          return [updatedEvent, ...filtered];
+        });
+      } else {
+        // Normal update - same ID
+        setDisplayedEvents(prev => prev.map(e => e.id === editingEvent.id ? updatedEvent : e));
+      }
+      
       closeEditModal();
       showSuccess('Memory updated!', 'Your memory has been successfully updated.');
     } catch (error) {
