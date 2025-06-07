@@ -16,6 +16,7 @@ export interface TimelineEvent {
   category?: string;
   emotions?: string[];
   images?: string[];
+  originalEventId?: string; // Track which original JSON event this localStorage event overrides
   // ALL additional fields from diary.json analysis
   activities?: string[] | string;
   adventure?: string;
@@ -362,7 +363,8 @@ class DataService {
       timing: memory.timing,
       trigger: memory.trigger,
       unique_elements: memory.unique_elements,
-      witnesses: memory.witnesses
+      witnesses: memory.witnesses,
+      originalEventId: memory.originalEventId
     };
 
     // Handle nested objects by flattening them
@@ -391,11 +393,20 @@ class DataService {
       // Get localStorage events first (these should appear at the top)
       const localStorageEvents = await this.getLocalStorageEvents();
       
+      // Get list of original event IDs that have been overridden
+      const overriddenEventIds = new Set(
+        localStorageEvents
+          .filter(event => event.originalEventId)
+          .map(event => event.originalEventId!)
+      );
+      
       // If this is the first page, include localStorage events
       if (page === 0) {
         const metadata = await this.loadMemoryMetadata();
         const memories = await this.loadMemoryPage(0);
-        const jsonEvents = memories.map(memory => this.convertMemoryToTimelineEvent(memory));
+        const jsonEvents = memories
+          .map(memory => this.convertMemoryToTimelineEvent(memory))
+          .filter(event => !overriddenEventIds.has(event.id)); // Filter out overridden events
         
         // Sort JSON events
         jsonEvents.sort((a, b) => {
@@ -418,18 +429,20 @@ class DataService {
         
         const hasMore = (page + 1) * this.PAGE_SIZE < metadata.total;
         
-        console.log(`Page ${page}: ${localStorageEvents.length} localStorage + ${jsonEvents.length} JSON events = ${allEvents.length} total, hasMore: ${hasMore}`);
+        console.log(`Page ${page}: ${localStorageEvents.length} localStorage + ${jsonEvents.length} JSON events (${overriddenEventIds.size} filtered) = ${allEvents.length} total, hasMore: ${hasMore}`);
         
         return {
           events: allEvents,
           hasMore,
-          total: metadata.total + localStorageEvents.length
+          total: metadata.total + localStorageEvents.length - overriddenEventIds.size
         };
       } else {
-        // For subsequent pages, only load JSON file events
+        // For subsequent pages, only load JSON file events (filtered)
         const metadata = await this.loadMemoryMetadata();
         const memories = await this.loadMemoryPage(page);
-        const events = memories.map(memory => this.convertMemoryToTimelineEvent(memory));
+        const events = memories
+          .map(memory => this.convertMemoryToTimelineEvent(memory))
+          .filter(event => !overriddenEventIds.has(event.id)); // Filter out overridden events
         
         // Sort this page only
         events.sort((a, b) => {
@@ -441,12 +454,12 @@ class DataService {
 
         const hasMore = (page + 1) * this.PAGE_SIZE < metadata.total;
         
-        console.log(`Page ${page}: ${events.length} JSON events, hasMore: ${hasMore}`);
+        console.log(`Page ${page}: ${events.length} JSON events (filtered), hasMore: ${hasMore}`);
         
         return {
           events,
           hasMore,
-          total: metadata.total + localStorageEvents.length
+          total: metadata.total + localStorageEvents.length - overriddenEventIds.size
         };
       }
     } catch (error) {
@@ -638,12 +651,12 @@ class DataService {
     if (eventIndex === -1) {
       // Event not found in localStorage, check if it's from main JSON files
       // If so, we need to create a new event in localStorage with the updated data
-      console.log(`Event ${eventId} not found in localStorage, checking main data...`);
+      console.log(`Event ${eventId} not found in localStorage, creating override for JSON event...`);
       
-      // Try to find the event in the displayed events (could be from JSON files)
-      // Since we can't modify JSON file events, we'll create a new event in localStorage
+      // Create new localStorage event that overrides the original JSON event
       const newEvent: TimelineEvent = {
         id: this.generateId(), // Generate new ID for localStorage
+        originalEventId: eventId, // Track which original event this overrides
         title: updatedData.title || 'Updated Memory',
         description: updatedData.description || '',
         date: updatedData.date || '',
@@ -659,7 +672,7 @@ class DataService {
       
       try {
         localStorage.setItem('timeline_events', JSON.stringify(localEvents));
-        console.log('New timeline event created in localStorage from JSON file event');
+        console.log(`New localStorage event created to override JSON event ${eventId}`);
         return newEvent;
       } catch (error) {
         console.error('Error creating new event in localStorage:', error);
