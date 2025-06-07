@@ -114,6 +114,54 @@ const MinimalTimelineImage = ({
   );
 };
 
+// Component to display additional memory fields
+const AdditionalMemoryFields = ({ event }: { event: TimelineEvent }) => {
+  // Define field display configurations
+  const fieldConfigs = [
+    { key: 'significance', label: 'Significance', icon: '⭐', color: 'text-yellow-400 bg-yellow-500/20' },
+    { key: 'location', label: 'Location', icon: '📍', color: 'text-green-400 bg-green-500/20' },
+    { key: 'context', label: 'Context', icon: '🔍', color: 'text-blue-400 bg-blue-500/20' },
+    { key: 'outcome', label: 'Outcome', icon: '🎯', color: 'text-purple-400 bg-purple-500/20' },
+    { key: 'note', label: 'Note', icon: '📝', color: 'text-gray-400 bg-gray-500/20' },
+    { key: 'notes', label: 'Notes', icon: '📋', color: 'text-gray-400 bg-gray-500/20' },
+    { key: 'restaurant', label: 'Restaurant', icon: '🍽️', color: 'text-orange-400 bg-orange-500/20' },
+    { key: 'realization', label: 'Realization', icon: '💡', color: 'text-yellow-400 bg-yellow-500/20' },
+    { key: 'gifts', label: 'Gifts', icon: '🎁', color: 'text-pink-400 bg-pink-500/20' },
+    { key: 'gift', label: 'Gift', icon: '🎁', color: 'text-pink-400 bg-pink-500/20' },
+    { key: 'gesture', label: 'Gesture', icon: '🤝', color: 'text-blue-400 bg-blue-500/20' },
+    { key: 'details', label: 'Details', icon: '📄', color: 'text-gray-400 bg-gray-500/20' },
+    { key: 'activities', label: 'Activities', icon: '🎯', color: 'text-indigo-400 bg-indigo-500/20' },
+  ];
+
+  const additionalFields = fieldConfigs.filter(config => {
+    const value = event[config.key];
+    return value && value !== '' && (Array.isArray(value) ? value.length > 0 : true);
+  });
+
+  if (additionalFields.length === 0) return null;
+
+  return (
+    <div className="mt-4 space-y-2">
+      {additionalFields.map(config => {
+        const value = event[config.key];
+        const displayValue = Array.isArray(value) ? value.join(', ') : value;
+        
+        return (
+          <div key={config.key} className="flex items-start space-x-2">
+            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${config.color}`}>
+              <span className="mr-1">{config.icon}</span>
+              {config.label}
+            </span>
+            <span className="text-white/70 text-xs flex-1 leading-relaxed">
+              {displayValue}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
 function Timeline() {
   const [displayedEvents, setDisplayedEvents] = useState<TimelineEvent[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
@@ -503,7 +551,7 @@ function Timeline() {
                         {/* Edit button */}
                         <button
                           onClick={() => openEditModal(displayedEvents[activeIndex])}
-                          className="absolute top-4 left-4 p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors"
+                          className="absolute bottom-4 right-4 p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors shadow-lg backdrop-blur-sm"
                           title="Edit memory"
                         >
                           <span className="text-white text-xs">✏️</span>
@@ -539,6 +587,9 @@ function Timeline() {
                                 }
                               </p>
                             </div>
+                            
+                            {/* Additional memory fields */}
+                            <AdditionalMemoryFields event={displayedEvents[activeIndex]} />
                           </div>
                           
                           <div className="flex justify-center">
@@ -622,7 +673,7 @@ function Timeline() {
                             {/* Edit button */}
                             <button
                               onClick={() => openEditModal(event)}
-                              className="absolute top-4 left-4 p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors"
+                              className="absolute bottom-4 right-4 p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors shadow-lg backdrop-blur-sm"
                               title="Edit memory"
                             >
                               <span className="text-white text-xs">✏️</span>
@@ -655,6 +706,9 @@ function Timeline() {
                                     {event.description}
                                   </p>
                                 </div>
+                                
+                                {/* Additional memory fields */}
+                                <AdditionalMemoryFields event={event} />
                               </div>
                               
                               <div className="lg:w-80 mt-4 lg:mt-0 flex-shrink-0">

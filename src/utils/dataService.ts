@@ -16,6 +16,21 @@ export interface TimelineEvent {
   category?: string;
   emotions?: string[];
   images?: string[];
+  // Additional fields from diary.json
+  significance?: string;
+  location?: string;
+  context?: string;
+  outcome?: string;
+  note?: string;
+  notes?: string;
+  restaurant?: string;
+  realization?: string;
+  gifts?: string;
+  gift?: string;
+  gesture?: string;
+  details?: string;
+  activities?: string[];
+  [key: string]: any; // For any other dynamic fields
 }
 
 export interface Announcement {
@@ -36,7 +51,20 @@ interface DiaryMemory {
   emotions?: string[];
   images?: string[];
   significance?: string;
+  location?: string;
+  context?: string;
+  outcome?: string;
+  note?: string;
+  notes?: string;
+  restaurant?: string;
+  realization?: string;
+  gifts?: string;
+  gift?: string;
+  gesture?: string;
+  details?: string;
+  activities?: string[];
   isHighlight?: boolean;
+  [key: string]: any; // For any other dynamic fields
 }
 
 // Cache for loaded data chunks
@@ -121,7 +149,20 @@ class DataService {
       imageLoaded: false,
       category: memory.category,
       emotions: memory.emotions,
-      images: memory.images
+      images: memory.images,
+      significance: memory.significance,
+      location: memory.location,
+      context: memory.context,
+      outcome: memory.outcome,
+      note: memory.note,
+      notes: memory.notes,
+      restaurant: memory.restaurant,
+      realization: memory.realization,
+      gifts: memory.gifts,
+      gift: memory.gift,
+      gesture: memory.gesture,
+      details: memory.details,
+      activities: memory.activities
     };
   }
 
@@ -308,6 +349,10 @@ class DataService {
 
   async addTimelineEvent(event: Omit<TimelineEvent, 'id'>): Promise<TimelineEvent> {
     const newEvent: TimelineEvent = {
+      date: '',
+      title: '',
+      description: '',
+      image: '',
       ...event,
       id: `user_${Date.now()}`, // Mark as user-added
       imageLoaded: true
