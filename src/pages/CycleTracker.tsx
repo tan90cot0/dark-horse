@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Heart, Flower, Moon, Sun, Droplets, Smile, Frown, Meh, Plus, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, Heart, Flower, Moon, Sun, Droplets, Plus, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface CycleEntry {
   date: string;
   phase: 'menstrual' | 'follicular' | 'ovulation' | 'luteal' | 'none';
-  mood: 'happy' | 'neutral' | 'sad' | 'none';
   symptoms: string[];
   notes: string;
   isPeriodStart?: boolean;
@@ -18,13 +17,12 @@ function CycleTracker() {
   const [currentEntry, setCurrentEntry] = useState<CycleEntry>({
     date: '',
     phase: 'none',
-    mood: 'none',
     symptoms: [],
     notes: '',
     isPeriodStart: false
   });
 
-  // Historical period start dates
+  // Historical period start dates - exact dates you provided
   const historicalPeriods = [
     '2024-01-12', '2024-02-07', '2024-03-15', '2024-04-12', '2024-05-08', '2024-06-02',
     '2024-07-05', '2024-07-31', '2024-08-26', '2024-09-24', '2024-10-22', '2024-11-17',
@@ -43,12 +41,6 @@ function CycleTracker() {
     'Cramps', 'Bloating', 'Headache', 'Fatigue', 'Breast tenderness',
     'Mood swings', 'Acne', 'Food cravings', 'Back pain', 'Nausea'
   ];
-
-  const moodIcons = {
-    happy: { icon: Smile, color: 'text-green-400' },
-    neutral: { icon: Meh, color: 'text-yellow-400' },
-    sad: { icon: Frown, color: 'text-red-400' }
-  };
 
   // Calculate cycle phases based on period start date
   const calculatePhases = (periodStart: string) => {
@@ -99,31 +91,17 @@ function CycleTracker() {
     return phases;
   };
 
-  // Initialize historical data
+  // Initialize historical data - force fresh reload
   useEffect(() => {
-    const savedEntries = localStorage.getItem('cycleEntries');
-    
-    if (savedEntries) {
-      const parsed = JSON.parse(savedEntries);
-      // Check if we have historical data, if not, regenerate
-      const hasHistoricalData = historicalPeriods.some(date => 
-        parsed.some((entry: CycleEntry) => entry.date === date && entry.isPeriodStart)
-      );
-      
-      if (!hasHistoricalData) {
-        // Regenerate with historical data
-        generateHistoricalData();
-      } else {
-        setEntries(parsed);
-      }
-    } else {
-      // Generate historical cycle data
-      generateHistoricalData();
-    }
+    // Clear existing data and regenerate to ensure accuracy
+    console.log('Loading historical period data...');
+    generateHistoricalData();
   }, []);
 
   const generateHistoricalData = () => {
     const historicalEntries: CycleEntry[] = [];
+    
+    console.log('Generating data for periods:', historicalPeriods);
     
     historicalPeriods.forEach(periodDate => {
       const phases = calculatePhases(periodDate);
@@ -131,13 +109,15 @@ function CycleTracker() {
         historicalEntries.push({
           date: phase.date,
           phase: phase.phase,
-          mood: 'none',
           symptoms: [],
           notes: '',
           isPeriodStart: phase.isPeriodStart || false
         });
       });
     });
+    
+    console.log(`Generated ${historicalEntries.length} entries`);
+    console.log('Period start dates found:', historicalEntries.filter(e => e.isPeriodStart).map(e => e.date));
     
     setEntries(historicalEntries);
   };
@@ -158,7 +138,6 @@ function CycleTracker() {
       setCurrentEntry({
         date,
         phase: 'none',
-        mood: 'none',
         symptoms: [],
         notes: '',
         isPeriodStart: false
@@ -189,7 +168,6 @@ function CycleTracker() {
     const newEntries = newPhases.map(phase => ({
       date: phase.date,
       phase: phase.phase,
-      mood: 'none' as const,
       symptoms: [] as string[],
       notes: '',
       isPeriodStart: phase.isPeriodStart || false
@@ -200,7 +178,6 @@ function CycleTracker() {
     setCurrentEntry({
       date: '',
       phase: 'none',
-      mood: 'none',
       symptoms: [],
       notes: '',
       isPeriodStart: false
@@ -211,7 +188,7 @@ function CycleTracker() {
     if (!selectedDate) return;
     
     const updatedEntries = entries.filter(entry => entry.date !== selectedDate);
-    if (currentEntry.phase !== 'none' || currentEntry.mood !== 'none' || currentEntry.symptoms.length > 0 || currentEntry.notes) {
+    if (currentEntry.phase !== 'none' || currentEntry.symptoms.length > 0 || currentEntry.notes) {
       updatedEntries.push(currentEntry);
     }
     
@@ -220,7 +197,6 @@ function CycleTracker() {
     setCurrentEntry({
       date: '',
       phase: 'none',
-      mood: 'none',
       symptoms: [],
       notes: '',
       isPeriodStart: false
@@ -315,11 +291,8 @@ function CycleTracker() {
                   {entry.phase !== 'none' && (
                     <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${cyclePhases.find(p => p.name === entry.phase)?.color}`}></div>
                   )}
-                  {entry.mood !== 'none' && (
-                    <div className={`w-2 h-2 rounded-full ${moodIcons[entry.mood].color.replace('text-', 'bg-')}`}></div>
-                  )}
                   {entry.isPeriodStart && (
-                    <div className="w-2 h-2 rounded-full bg-red-500 ring-1 ring-white"></div>
+                    <div className="w-3 h-3 rounded-full bg-red-500 ring-2 ring-white"></div>
                   )}
                 </div>
               )}
@@ -369,8 +342,14 @@ function CycleTracker() {
               <Heart className="text-pink-400 mr-2" size={18} />
               <span className="text-base font-medium">Wellness Tracker</span>
             </motion.div>
-            <h1 className="text-4xl font-bold gradient-text mb-2">Cycle & Mood Tracker</h1>
-            <p className="text-gray-400">Track your wellness journey with love and care 💕</p>
+            <h1 className="text-4xl font-bold gradient-text mb-2">Cycle Tracker</h1>
+            <p className="text-gray-400">Track your cycle with love and care 💕</p>
+          </div>
+
+          {/* Debug Info */}
+          <div className="mb-4 p-4 bg-white/5 rounded-lg text-sm">
+            <p>Historical periods loaded: {entries.filter(e => e.isPeriodStart).length}</p>
+            <p>Period start dates: {entries.filter(e => e.isPeriodStart).map(e => e.date).join(', ')}</p>
           </div>
 
           {/* Next Period Prediction Card */}
@@ -479,31 +458,27 @@ function CycleTracker() {
                 
                 {/* Legend */}
                 <div className="mt-6 pt-4 border-t border-white/10">
-                  <h4 className="text-sm font-medium text-gray-300 mb-3">Cycle Phases & Indicators</h4>
+                  <h4 className="text-sm font-medium text-gray-300 mb-3">Cycle Phases</h4>
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full bg-gradient-to-r from-red-500 to-pink-500"></div>
-                      <span className="text-gray-300">Menstrual</span>
+                      <span className="text-gray-300">Menstrual (1-5)</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full bg-gradient-to-r from-green-500 to-emerald-500"></div>
-                      <span className="text-gray-300">Follicular</span>
+                      <span className="text-gray-300">Follicular (6-13)</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500"></div>
-                      <span className="text-gray-300">Ovulation</span>
+                      <span className="text-gray-300">Ovulation (14-16)</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500"></div>
-                      <span className="text-gray-300">Luteal</span>
+                      <span className="text-gray-300">Luteal (17-28)</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-red-500 ring-1 ring-white"></div>
+                      <div className="w-3 h-3 rounded-full bg-red-500 ring-2 ring-white"></div>
                       <span className="text-gray-300">Period Start</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-green-400"></div>
-                      <span className="text-gray-300">Mood Tracked</span>
                     </div>
                   </div>
                 </div>
@@ -562,29 +537,6 @@ function CycleTracker() {
                             </button>
                           );
                         })}
-                      </div>
-                    </div>
-
-                    {/* Mood */}
-                    <div className="mb-6">
-                      <label className="block text-sm font-medium mb-3">Mood</label>
-                      <div className="flex gap-2">
-                        {Object.entries(moodIcons).map(([mood, { icon: Icon, color }]) => (
-                          <button
-                            key={mood}
-                            onClick={() => setCurrentEntry(prev => ({ ...prev, mood: mood as any }))}
-                            className={`
-                              p-3 rounded-xl border transition-all duration-200 flex-1 flex flex-col items-center gap-2
-                              ${currentEntry.mood === mood
-                                ? 'border-white/30 bg-white/10'
-                                : 'border-white/10 hover:border-white/20 bg-white/5'
-                              }
-                            `}
-                          >
-                            <Icon size={18} className={color} />
-                            <span className="text-xs capitalize">{mood}</span>
-                          </button>
-                        ))}
                       </div>
                     </div>
 
