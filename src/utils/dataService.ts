@@ -17,6 +17,7 @@ export interface TimelineEvent {
   emotions?: string[];
   images?: string[];
   originalEventId?: string; // Track which original JSON event this localStorage event overrides
+  isDeleted?: boolean; // Mark events as deleted (for JSON file events that can't be truly deleted)
   // ALL additional fields from diary.json analysis
   activities?: string[] | string;
   adventure?: string;
@@ -398,21 +399,35 @@ class DataService {
       // Get localStorage events first (these should appear by date, not at top)
       const localStorageEvents = await this.getLocalStorageEvents();
       
-      // Get list of original event IDs that have been overridden
+      // Get list of original event IDs that have been overridden or deleted
       const overriddenEventIds = new Set(
         localStorageEvents
-          .filter(event => event.originalEventId)
+          .filter(event => event.originalEventId && !event.isDeleted)
           .map(event => event.originalEventId!)
       );
       
-      // Debug logging for override detection
-      if (overriddenEventIds.size > 0) {
-        console.log('🔍 Override Detection Debug:');
+      const deletedEventIds = new Set(
+        localStorageEvents
+          .filter(event => event.isDeleted && event.originalEventId)
+          .map(event => event.originalEventId!)
+      );
+      
+      // Combined set of IDs to filter out
+      const filteredEventIds = new Set([...overriddenEventIds, ...deletedEventIds]);
+      
+      // Debug logging for override and delete detection
+      if (filteredEventIds.size > 0) {
+        console.log('🔍 Override & Delete Detection Debug:');
         console.log('Overridden event IDs:', Array.from(overriddenEventIds));
+        console.log('Deleted event IDs:', Array.from(deletedEventIds));
         localStorageEvents
           .filter(event => event.originalEventId)
           .forEach(event => {
-            console.log(`localStorage event "${event.title}" overrides original ID: ${event.originalEventId}`);
+            if (event.isDeleted) {
+              console.log(`localStorage event marks original ID ${event.originalEventId} as DELETED`);
+            } else {
+              console.log(`localStorage event "${event.title}" overrides original ID: ${event.originalEventId}`);
+            }
           });
       }
       
@@ -423,18 +438,18 @@ class DataService {
         const allJsonEvents = memories.map(memory => this.convertMemoryToTimelineEvent(memory));
         
         // Debug: Show which events are being filtered
-        const filteredOutEvents = allJsonEvents.filter(event => overriddenEventIds.has(event.id));
+        const filteredOutEvents = allJsonEvents.filter(event => filteredEventIds.has(event.id));
         if (filteredOutEvents.length > 0) {
-          console.log('🚫 Filtering out overridden JSON events:');
+          console.log('🚫 Filtering out overridden and deleted events:');
           filteredOutEvents.forEach(event => {
-            console.log(`  - "${event.title}" (ID: ${event.id}) - overridden by localStorage`);
+            console.log(`  - "${event.title}" (ID: ${event.id}) - overridden or deleted`);
           });
         }
         
-        const jsonEvents = allJsonEvents.filter(event => !overriddenEventIds.has(event.id)); // Filter out overridden events
+        const jsonEvents = allJsonEvents.filter(event => !filteredEventIds.has(event.id)); // Filter out overridden and deleted events
         
-        // Combine all events and sort by date
-        const allEvents = [...localStorageEvents, ...jsonEvents];
+        // Combine all events and sort by date (filter out deleted localStorage events)
+        const allEvents = [...localStorageEvents.filter(event => !event.isDeleted), ...jsonEvents];
         
         // Sort ALL events by date (OLDEST first for chronological timeline)
         allEvents.sort((a, b) => {
@@ -452,12 +467,12 @@ class DataService {
         
         const hasMore = (page + 1) * this.PAGE_SIZE < metadata.total;
         
-        console.log(`Page ${page}: ${localStorageEvents.length} localStorage + ${jsonEvents.length} JSON events (${overriddenEventIds.size} overridden) = ${allEvents.length} total, sorted by date`);
+        console.log(`Page ${page}: ${localStorageEvents.length} localStorage + ${jsonEvents.length} JSON events (${filteredEventIds.size} overridden or deleted) = ${allEvents.length} total, sorted by date`);
         
         return {
           events: allEvents,
           hasMore,
-          total: metadata.total + localStorageEvents.length - overriddenEventIds.size
+          total: metadata.total + localStorageEvents.length - filteredEventIds.size
         };
       } else {
         // For subsequent pages, only load JSON file events (filtered)
@@ -465,7 +480,7 @@ class DataService {
         const memories = await this.loadMemoryPage(page);
         const events = memories
           .map(memory => this.convertMemoryToTimelineEvent(memory))
-          .filter(event => !overriddenEventIds.has(event.id)); // Filter out overridden events
+          .filter(event => !filteredEventIds.has(event.id)); // Filter out overridden and deleted events
         
         // Sort by date
         events.sort((a, b) => {
@@ -477,12 +492,12 @@ class DataService {
 
         const hasMore = (page + 1) * this.PAGE_SIZE < metadata.total;
         
-        console.log(`Page ${page}: ${events.length} JSON events (${overriddenEventIds.size} overridden), sorted by date`);
+        console.log(`Page ${page}: ${events.length} JSON events (${filteredEventIds.size} overridden or deleted), sorted by date`);
         
         return {
           events,
           hasMore,
-          total: metadata.total + localStorageEvents.length - overriddenEventIds.size
+          total: metadata.total + localStorageEvents.length - filteredEventIds.size
         };
       }
     } catch (error) {
@@ -720,6 +735,49 @@ class DataService {
     } catch (error) {
       console.error('Error updating in localStorage:', error);
       throw new Error('Failed to update event');
+    }
+  }
+
+  async deleteTimelineEvent(eventId: string): Promise<void> {
+    const localEvents = await this.getLocalStorageEvents();
+    const eventIndex = localEvents.findIndex(event => event.id === eventId);
+    
+    if (eventIndex !== -1) {
+      // Event found in localStorage - delete it directly
+      const deletedEvent = localEvents[eventIndex];
+      localEvents.splice(eventIndex, 1);
+      
+      try {
+        localStorage.setItem('timeline_events', JSON.stringify(localEvents));
+        console.log(`Deleted localStorage event: "${deletedEvent.title}"`);
+        return;
+      } catch (error) {
+        console.error('Error deleting from localStorage:', error);
+        throw new Error('Failed to delete event');
+      }
+    } else {
+      // Event not in localStorage - it's from JSON files
+      // Create a "deleted" marker in localStorage to hide it
+      const deletedMarker: TimelineEvent = {
+        id: this.generateId(),
+        originalEventId: eventId,
+        title: '[DELETED]',
+        description: '[DELETED]',
+        date: '',
+        image: '',
+        isDeleted: true // Special flag to mark as deleted
+      };
+      
+      localEvents.push(deletedMarker);
+      
+      try {
+        localStorage.setItem('timeline_events', JSON.stringify(localEvents));
+        console.log(`Created delete marker for JSON event ${eventId}`);
+        return;
+      } catch (error) {
+        console.error('Error creating delete marker:', error);
+        throw new Error('Failed to delete event');
+      }
     }
   }
 

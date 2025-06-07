@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Calendar, Plus, Heart, X, Save, Edit, Image as ImageIcon, ChevronLeft, ChevronRight, Sparkles, Loader } from 'lucide-react';
+import { Calendar, Plus, Heart, X, Save, Edit, Image as ImageIcon, ChevronLeft, ChevronRight, Sparkles, Loader, Trash2 } from 'lucide-react';
 import dataService, { TimelineEvent } from '../utils/dataService';
 import { useNotification } from '../context/NotificationContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -593,6 +593,27 @@ function Timeline() {
     }
   };
 
+  const handleDelete = async (eventId: string, eventTitle: string) => {
+    if (!confirm(`Are you sure you want to delete "${eventTitle}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      setIsLoadingMore(true);
+      await dataService.deleteTimelineEvent(eventId);
+      
+      // Refresh the events list
+      await loadInitialEvents();
+      
+      showSuccess('Memory deleted', `"${eventTitle}" has been deleted successfully`);
+    } catch (error) {
+      console.error('Delete failed:', error);
+      showError('Delete failed', 'Failed to delete memory. Please try again.');
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
   if (isInitialLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 text-white flex items-center justify-center">
@@ -822,10 +843,17 @@ function Timeline() {
                               <div className="flex justify-end pt-2">
                   <button 
                                   onClick={() => openEditModal(event)}
-                                  className="inline-flex items-center px-2 py-1 bg-white/10 rounded-lg hover:bg-white/20 transition-colors text-xs"
+                                  className="inline-flex items-center px-2 py-1 bg-white/10 rounded-lg hover:bg-white/20 transition-colors text-xs mr-2"
                   >
                                   <Edit size={14} className="mr-1" />
                                   Edit
+                  </button>
+                  <button 
+                    onClick={() => handleDelete(event.id, event.title)}
+                    className="inline-flex items-center px-2 py-1 bg-red-500/20 rounded-lg hover:bg-red-500/30 transition-colors text-xs text-red-300"
+                  >
+                    <Trash2 size={14} className="mr-1" />
+                    Delete
                   </button>
                 </div>
               </div>
@@ -920,10 +948,17 @@ function Timeline() {
                                 <div className="flex justify-end pt-3">
                                   <button
                                     onClick={() => openEditModal(event)}
-                                    className="inline-flex items-center px-3 py-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors text-sm"
+                                    className="inline-flex items-center px-3 py-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors text-sm mr-2"
                                   >
                                     <Edit size={16} className="mr-2" />
                                     Edit Memory
+                                  </button>
+                                  <button
+                                    onClick={() => handleDelete(event.id, event.title)}
+                                    className="inline-flex items-center px-3 py-2 bg-red-500/20 rounded-lg hover:bg-red-500/30 transition-colors text-sm text-red-300"
+                                  >
+                                    <Trash2 size={16} className="mr-2" />
+                                    Delete
                                   </button>
                                 </div>
                         </div>
