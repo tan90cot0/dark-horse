@@ -334,33 +334,6 @@ function Timeline() {
     setFilteredEvents(filtered);
   }, [displayedEvents, searchTerm, selectedCategory]);
 
-  // Better intersection observer from old code with debouncing
-  useEffect(() => {
-    if (!sentinelRef.current || !hasMorePages || isLoadingMore || isMobile) return;
-
-    let timeoutId: NodeJS.Timeout;
-    
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          // Debounce to prevent rapid calls
-          clearTimeout(timeoutId);
-          timeoutId = setTimeout(() => {
-            loadMoreEvents();
-          }, 500);
-        }
-      },
-      { threshold: 0.1, rootMargin: '200px' }
-    );
-
-    observer.observe(sentinelRef.current);
-    
-    return () => {
-      observer.disconnect();
-      clearTimeout(timeoutId);
-    };
-  }, [hasMorePages, isLoadingMore, isMobile]);
-
   // Load timeline events
   useEffect(() => {
     loadInitialEvents();
@@ -408,6 +381,33 @@ function Timeline() {
       setIsLoadingMore(false);
     }
   }, [currentPage, hasMorePages, isLoadingMore, showError]);
+
+  // Better intersection observer from old code with debouncing - MOVED AFTER loadMoreEvents
+  useEffect(() => {
+    if (!sentinelRef.current || !hasMorePages || isLoadingMore || isMobile) return;
+
+    let timeoutId: NodeJS.Timeout;
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          // Debounce to prevent rapid calls
+          clearTimeout(timeoutId);
+          timeoutId = setTimeout(() => {
+            loadMoreEvents();
+          }, 500);
+        }
+      },
+      { threshold: 0.1, rootMargin: '200px' }
+    );
+
+    observer.observe(sentinelRef.current);
+    
+    return () => {
+      observer.disconnect();
+      clearTimeout(timeoutId);
+    };
+  }, [hasMorePages, isLoadingMore, isMobile, loadMoreEvents]);
 
   // Modal handlers
   const openAddModal = () => {
