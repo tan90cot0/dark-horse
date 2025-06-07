@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Heart, Flower, Moon, Sun, Droplets, Smile, Frown, Meh } from 'lucide-react';
+import { Calendar, Heart, Flower, Moon, Sun, Droplets, Smile, Frown, Meh, Plus, Calendar as CalendarIcon } from 'lucide-react';
 
 interface CycleEntry {
   date: string;
@@ -8,6 +8,7 @@ interface CycleEntry {
   mood: 'happy' | 'neutral' | 'sad' | 'none';
   symptoms: string[];
   notes: string;
+  isPeriodStart?: boolean;
 }
 
 function CycleTracker() {
@@ -18,8 +19,17 @@ function CycleTracker() {
     phase: 'none',
     mood: 'none',
     symptoms: [],
-    notes: ''
+    notes: '',
+    isPeriodStart: false
   });
+
+  // Historical period start dates
+  const historicalPeriods = [
+    '2024-01-12', '2024-02-07', '2024-03-15', '2024-04-12', '2024-05-08', '2024-06-02',
+    '2024-07-05', '2024-07-31', '2024-08-26', '2024-09-24', '2024-10-22', '2024-11-17',
+    '2024-12-16', '2025-01-16', '2025-02-14', '2025-03-16', '2025-04-11', '2025-05-06',
+    '2025-06-02'
+  ];
 
   const cyclePhases = [
     { name: 'menstrual', label: 'Menstrual', color: 'from-red-500 to-pink-500', icon: Droplets },
@@ -39,11 +49,80 @@ function CycleTracker() {
     sad: { icon: Frown, color: 'text-red-400' }
   };
 
-  // Load data from localStorage
+  // Calculate cycle phases based on period start date
+  const calculatePhases = (periodStart: string) => {
+    const startDate = new Date(periodStart);
+    const phases = [];
+    
+    // Menstrual phase: days 1-5
+    for (let i = 0; i < 5; i++) {
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + i);
+      phases.push({
+        date: date.toISOString().split('T')[0],
+        phase: 'menstrual' as const,
+        isPeriodStart: i === 0
+      });
+    }
+    
+    // Follicular phase: days 6-13
+    for (let i = 5; i < 13; i++) {
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + i);
+      phases.push({
+        date: date.toISOString().split('T')[0],
+        phase: 'follicular' as const
+      });
+    }
+    
+    // Ovulation phase: days 14-16
+    for (let i = 13; i < 16; i++) {
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + i);
+      phases.push({
+        date: date.toISOString().split('T')[0],
+        phase: 'ovulation' as const
+      });
+    }
+    
+    // Luteal phase: days 17-28
+    for (let i = 16; i < 28; i++) {
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + i);
+      phases.push({
+        date: date.toISOString().split('T')[0],
+        phase: 'luteal' as const
+      });
+    }
+    
+    return phases;
+  };
+
+  // Initialize historical data
   useEffect(() => {
     const savedEntries = localStorage.getItem('cycleEntries');
+    
     if (savedEntries) {
       setEntries(JSON.parse(savedEntries));
+    } else {
+      // Generate historical cycle data
+      const historicalEntries: CycleEntry[] = [];
+      
+      historicalPeriods.forEach(periodDate => {
+        const phases = calculatePhases(periodDate);
+        phases.forEach(phase => {
+          historicalEntries.push({
+            date: phase.date,
+            phase: phase.phase,
+            mood: 'none',
+            symptoms: [],
+            notes: '',
+            isPeriodStart: phase.isPeriodStart || false
+          });
+        });
+      });
+      
+      setEntries(historicalEntries);
     }
   }, []);
 
@@ -65,7 +144,8 @@ function CycleTracker() {
         phase: 'none',
         mood: 'none',
         symptoms: [],
-        notes: ''
+        notes: '',
+        isPeriodStart: false
       });
     }
   };
@@ -77,6 +157,38 @@ function CycleTracker() {
         ? prev.symptoms.filter(s => s !== symptom)
         : [...prev.symptoms, symptom]
     }));
+  };
+
+  const markPeriodStart = () => {
+    if (!selectedDate) return;
+    
+    // Generate phases for this period cycle
+    const newPhases = calculatePhases(selectedDate);
+    
+    // Remove existing entries for these dates and add new ones
+    const filteredEntries = entries.filter(entry => 
+      !newPhases.some(phase => phase.date === entry.date)
+    );
+    
+    const newEntries = newPhases.map(phase => ({
+      date: phase.date,
+      phase: phase.phase,
+      mood: 'none' as const,
+      symptoms: [] as string[],
+      notes: '',
+      isPeriodStart: phase.isPeriodStart || false
+    }));
+    
+    setEntries([...filteredEntries, ...newEntries]);
+    setSelectedDate('');
+    setCurrentEntry({
+      date: '',
+      phase: 'none',
+      mood: 'none',
+      symptoms: [],
+      notes: '',
+      isPeriodStart: false
+    });
   };
 
   const saveEntry = () => {
@@ -94,29 +206,31 @@ function CycleTracker() {
       phase: 'none',
       mood: 'none',
       symptoms: [],
-      notes: ''
+      notes: '',
+      isPeriodStart: false
     });
   };
 
   const getNextPeriodPrediction = () => {
-    const menstrualEntries = entries
-      .filter(entry => entry.phase === 'menstrual')
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const periodStarts = entries
+      .filter(entry => entry.isPeriodStart)
+      .map(entry => entry.date)
+      .sort();
     
-    if (menstrualEntries.length < 2) return null;
+    if (periodStarts.length < 2) return null;
     
-    // Simple prediction based on average cycle length
+    // Calculate average cycle length
     const cycles = [];
-    for (let i = 1; i < menstrualEntries.length; i++) {
-      const diff = Math.abs(new Date(menstrualEntries[i].date).getTime() - new Date(menstrualEntries[i-1].date).getTime());
+    for (let i = 1; i < periodStarts.length; i++) {
+      const diff = Math.abs(new Date(periodStarts[i]).getTime() - new Date(periodStarts[i-1]).getTime());
       cycles.push(Math.ceil(diff / (1000 * 60 * 60 * 24)));
     }
     
     const averageCycle = Math.round(cycles.reduce((a, b) => a + b, 0) / cycles.length);
-    const lastPeriod = new Date(menstrualEntries[menstrualEntries.length - 1].date);
+    const lastPeriod = new Date(periodStarts[periodStarts.length - 1]);
     const nextPeriod = new Date(lastPeriod.getTime() + (averageCycle * 24 * 60 * 60 * 1000));
     
-    return { nextPeriod, averageCycle };
+    return { nextPeriod, averageCycle, lastPeriod: lastPeriod };
   };
 
   const prediction = getNextPeriodPrediction();
@@ -125,13 +239,13 @@ function CycleTracker() {
     const today = new Date();
     const days = [];
     
-    // Generate last 30 days and next 30 days
-    for (let i = 30; i >= 0; i--) {
+    // Generate last 60 days and next 60 days for better coverage
+    for (let i = 60; i >= 0; i--) {
       const date = new Date(today.getTime() - (i * 24 * 60 * 60 * 1000));
       days.push(date.toISOString().split('T')[0]);
     }
     
-    for (let i = 1; i <= 30; i++) {
+    for (let i = 1; i <= 60; i++) {
       const date = new Date(today.getTime() + (i * 24 * 60 * 60 * 1000));
       days.push(date.toISOString().split('T')[0]);
     }
@@ -142,6 +256,16 @@ function CycleTracker() {
   const getEntryForDate = (date: string) => {
     return entries.find(entry => entry.date === date);
   };
+
+  const getDaysUntilNextPeriod = () => {
+    if (!prediction) return null;
+    const today = new Date();
+    const diffTime = prediction.nextPeriod.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
+  const daysUntilNext = getDaysUntilNextPeriod();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 text-white">
@@ -172,26 +296,62 @@ function CycleTracker() {
             <p className="text-gray-400">Track your wellness journey with love and care 💕</p>
           </div>
 
-          {/* Prediction Card */}
+          {/* Next Period Prediction Card */}
+          {prediction && daysUntilNext !== null && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="glass-effect border border-white/10 rounded-2xl p-6 mb-8 bg-gradient-to-r from-pink-500/10 to-purple-500/10"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 flex items-center justify-center">
+                    <CalendarIcon className="text-white" size={24} />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold mb-1">Next Period</h3>
+                    <p className="text-gray-400 text-sm">Expected on {prediction.nextPeriod.toLocaleDateString()}</p>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400">
+                    {daysUntilNext > 0 ? daysUntilNext : 'Today!'}
+                  </div>
+                  <div className="text-sm text-gray-300">
+                    {daysUntilNext > 0 ? (daysUntilNext === 1 ? 'day left' : 'days left') : 'Expected today'}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Stats Cards */}
           {prediction && (
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="glass-effect border border-white/10 rounded-2xl p-6 mb-8"
+              className="grid md:grid-cols-3 gap-4 mb-8"
             >
-              <h3 className="text-xl font-semibold mb-4 flex items-center">
-                <Calendar className="mr-2 text-purple-400" size={20} />
-                Wellness Insights
-              </h3>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl p-4">
-                  <p className="text-sm text-gray-300 mb-1">Next Period Prediction</p>
-                  <p className="text-lg font-semibold">{prediction.nextPeriod.toLocaleDateString()}</p>
-                </div>
-                <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-xl p-4">
-                  <p className="text-sm text-gray-300 mb-1">Average Cycle Length</p>
-                  <p className="text-lg font-semibold">{prediction.averageCycle} days</p>
-                </div>
+              <div className="glass-effect border border-white/10 rounded-2xl p-6">
+                <h3 className="text-lg font-semibold mb-2 flex items-center">
+                  <Calendar className="mr-2 text-purple-400" size={20} />
+                  Average Cycle
+                </h3>
+                <p className="text-2xl font-bold text-purple-400">{prediction.averageCycle} days</p>
+              </div>
+              <div className="glass-effect border border-white/10 rounded-2xl p-6">
+                <h3 className="text-lg font-semibold mb-2 flex items-center">
+                  <Droplets className="mr-2 text-red-400" size={20} />
+                  Last Period
+                </h3>
+                <p className="text-2xl font-bold text-red-400">{prediction.lastPeriod.toLocaleDateString()}</p>
+              </div>
+              <div className="glass-effect border border-white/10 rounded-2xl p-6">
+                <h3 className="text-lg font-semibold mb-2 flex items-center">
+                  <Heart className="mr-2 text-pink-400" size={20} />
+                  Total Cycles
+                </h3>
+                <p className="text-2xl font-bold text-pink-400">{entries.filter(e => e.isPeriodStart).length}</p>
               </div>
             </motion.div>
           )}
@@ -242,6 +402,9 @@ function CycleTracker() {
                             {entry.mood !== 'none' && (
                               <div className={`w-2 h-2 rounded-full ${moodIcons[entry.mood].color.replace('text-', 'bg-')}`}></div>
                             )}
+                            {entry.isPeriodStart && (
+                              <div className="w-2 h-2 rounded-full bg-red-500 ring-1 ring-white"></div>
+                            )}
                           </div>
                         )}
                       </motion.button>
@@ -264,6 +427,22 @@ function CycleTracker() {
                 
                 {selectedDate && (
                   <>
+                    {/* Mark Period Start Button */}
+                    <div className="mb-6">
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={markPeriodStart}
+                        className="w-full py-3 bg-gradient-to-r from-red-600 to-pink-600 rounded-xl font-medium hover:from-red-700 hover:to-pink-700 transition-all duration-300 flex items-center justify-center gap-2"
+                      >
+                        <Plus size={16} />
+                        Mark Period Start
+                      </motion.button>
+                      <p className="text-xs text-gray-400 mt-2 text-center">
+                        This will automatically calculate all cycle phases
+                      </p>
+                    </div>
+
                     {/* Cycle Phase */}
                     <div className="mb-6">
                       <label className="block text-sm font-medium mb-3">Cycle Phase</label>

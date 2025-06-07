@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Heart, Plane, Film, Gift, MapPin, Clock, Plus, Edit2, Trash2 } from 'lucide-react';
+import { Calendar, Heart, Plane, Film, Gift, MapPin, Clock, Plus, Edit2, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface RelationshipEvent {
   id: string;
@@ -24,6 +24,7 @@ function RelationshipCalendar() {
     location: '',
     isCountdown: false
   });
+  const [currentDate, setCurrentDate] = useState(new Date());
 
   const eventTypes = [
     { name: 'movie', label: 'Movie Date', icon: Film, color: 'from-red-500 to-pink-500' },
@@ -151,40 +152,114 @@ function RelationshipCalendar() {
     return eventTypes.find(t => t.name === type) || eventTypes[eventTypes.length - 1];
   };
 
-  const generateCalendarGrid = () => {
-    const today = new Date();
-    const currentMonth = today.getMonth();
-    const currentYear = today.getFullYear();
-    
-    // Get first day of month and number of days
-    const firstDay = new Date(currentYear, currentMonth, 1);
-    const lastDay = new Date(currentYear, currentMonth + 1, 0);
+  const getDayEvents = (date: Date) => {
+    return events.filter(event => {
+      const eventDate = new Date(event.date);
+      return eventDate.toDateString() === date.toDateString();
+    });
+  };
+
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
     const startingDayOfWeek = firstDay.getDay();
-    
+
     const days = [];
     
-    // Add empty cells for days before month starts
+    // Add empty cells for days before the first day of the month
     for (let i = 0; i < startingDayOfWeek; i++) {
       days.push(null);
     }
     
     // Add days of the month
     for (let day = 1; day <= daysInMonth; day++) {
-      days.push(day);
+      days.push(new Date(year, month, day));
     }
     
-    return { days, monthName: firstDay.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) };
+    return days;
   };
 
-  const getEventsForDate = (day: number) => {
-    if (!day) return [];
+  const renderCalendarGrid = () => {
+    const days = getDaysInMonth(currentDate);
     const today = new Date();
-    const dateString = new Date(today.getFullYear(), today.getMonth(), day).toISOString().split('T')[0];
-    return events.filter(event => event.date === dateString);
+    
+    return (
+      <div className="grid grid-cols-7 gap-2">
+        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+          <div key={day} className="text-center text-sm font-medium text-gray-400 p-2">
+            {day}
+          </div>
+        ))}
+        {days.map((date, index) => {
+          if (!date) {
+            return <div key={index} className="h-12"></div>;
+          }
+          
+          const dayEvents = getDayEvents(date);
+          const isToday = date.toDateString() === today.toDateString();
+          const hasEvents = dayEvents.length > 0;
+          
+          return (
+            <motion.div
+              key={date.toISOString()}
+              whileHover={{ scale: 1.05 }}
+              className={`
+                relative h-12 p-1 rounded-lg cursor-pointer transition-all duration-200 border
+                ${isToday 
+                  ? 'bg-blue-500/20 border-blue-400 ring-2 ring-blue-400/50' 
+                  : hasEvents 
+                    ? 'bg-gradient-to-br from-pink-500/20 to-purple-500/20 border-pink-400/50 hover:border-pink-400' 
+                    : 'border-white/10 hover:border-white/20 hover:bg-white/5'
+                }
+              `}
+              onClick={() => handleDateClick(date)}
+            >
+              <div className={`text-sm font-medium ${isToday ? 'text-blue-300' : hasEvents ? 'text-pink-300' : 'text-white'}`}>
+                {date.getDate()}
+              </div>
+              {hasEvents && (
+                <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex gap-1">
+                  {dayEvents.slice(0, 3).map((event, idx) => (
+                    <div
+                      key={idx}
+                      className={`w-1.5 h-1.5 rounded-full ${getEventColor(event.type)}`}
+                      title={event.title}
+                    />
+                  ))}
+                  {dayEvents.length > 3 && (
+                    <div className="w-1.5 h-1.5 rounded-full bg-gray-400" title={`+${dayEvents.length - 3} more`} />
+                  )}
+                </div>
+              )}
+            </motion.div>
+          );
+        })}
+      </div>
+    );
   };
 
-  const { days, monthName } = generateCalendarGrid();
+  const getEventColor = (type: string) => {
+    const colors = {
+      flight: 'bg-blue-400',
+      meeting: 'bg-green-400',
+      'movie-date': 'bg-purple-400',
+      anniversary: 'bg-pink-400',
+      gift: 'bg-yellow-400',
+      other: 'bg-gray-400'
+    };
+    return colors[type as keyof typeof colors] || colors.other;
+  };
+
+  const handleDateClick = (date: Date) => {
+    const dayEvents = getDayEvents(date);
+    if (dayEvents.length > 0) {
+      // You could open a modal or show event details here
+      console.log(`Events on ${date.toDateString()}:`, dayEvents);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 text-white">
@@ -270,62 +345,71 @@ function RelationshipCalendar() {
                 className="glass-effect border border-white/10 rounded-2xl p-6"
               >
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-2xl font-semibold">{monthName}</h3>
-                  <button
-                    onClick={() => setShowAddForm(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-pink-600 to-purple-600 rounded-xl text-sm font-medium hover:from-pink-700 hover:to-purple-700 transition-all duration-300"
-                  >
-                    <Plus size={16} />
-                    Add Event
-                  </button>
-                </div>
-                
-                <div className="grid grid-cols-7 gap-2 mb-4">
-                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                    <div key={day} className="text-center text-sm font-medium text-gray-400 p-2">
-                      {day}
-                    </div>
-                  ))}
-                </div>
-                
-                <div className="grid grid-cols-7 gap-2">
-                  {days.map((day, index) => {
-                    const dayEvents = day ? getEventsForDate(day) : [];
-                    const isToday = day === new Date().getDate();
+                  <h3 className="text-2xl font-semibold">
+                    {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                  </h3>
+                  <div className="flex gap-2">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setShowAddForm(true)}
+                      className="px-4 py-2 bg-gradient-to-r from-pink-600 to-purple-600 rounded-xl text-sm font-medium hover:from-pink-700 hover:to-purple-700 transition-all duration-300 flex items-center gap-2"
+                    >
+                      <Plus size={16} />
+                      Add Event
+                    </motion.button>
                     
-                    return (
-                      <div
-                        key={index}
-                        className={`
-                          min-h-[60px] p-2 rounded-lg border transition-all duration-200
-                          ${day ? 'hover:bg-white/10 border-white/10' : 'border-transparent'}
-                          ${isToday ? 'ring-2 ring-blue-400 bg-blue-500/10' : ''}
-                        `}
-                      >
-                        {day && (
-                          <>
-                            <div className={`text-sm font-medium mb-1 ${isToday ? 'text-blue-400' : ''}`}>
-                              {day}
-                            </div>
-                            <div className="space-y-1">
-                              {dayEvents.map(event => {
-                                const eventType = getEventTypeInfo(event.type);
-                                return (
-                                  <div
-                                    key={event.id}
-                                    className={`text-xs p-1 rounded bg-gradient-to-r ${eventType.color}/20 text-white truncate`}
-                                    title={event.title}
-                                  >
-                                    {event.title}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    );
-                  })}
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))}
+                      className="p-2 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 transition-colors"
+                    >
+                      <ChevronLeft size={20} />
+                    </motion.button>
+                    
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))}
+                      className="p-2 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 transition-colors"
+                    >
+                      <ChevronRight size={20} />
+                    </motion.button>
+                  </div>
+                </div>
+                
+                {renderCalendarGrid()}
+                
+                {/* Legend */}
+                <div className="mt-6 pt-4 border-t border-white/10">
+                  <h4 className="text-sm font-medium text-gray-300 mb-3">Event Types</h4>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-blue-400"></div>
+                      <span className="text-gray-300">Flights</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-green-400"></div>
+                      <span className="text-gray-300">Meetings</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-purple-400"></div>
+                      <span className="text-gray-300">Movie Dates</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-pink-400"></div>
+                      <span className="text-gray-300">Anniversaries</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                      <span className="text-gray-300">Gifts</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-gray-400"></div>
+                      <span className="text-gray-300">Other</span>
+                    </div>
+                  </div>
                 </div>
               </motion.div>
             </div>
