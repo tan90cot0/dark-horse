@@ -31,30 +31,32 @@ class SurpriseService {
 
   async generateSurpriseContent(): Promise<SurpriseContent> {
     try {
-      const prompt = `Generate a fun, romantic, and playful question for a coding partnership website. The question should be about collaboration, coding together, or building something amazing together. It should be sweet but not overly cheesy. 
+      const prompt = `Generate a cute, romantic, and playful question that someone would ask their crush or girlfriend. The question should be sweet, adorable, and make her smile. It could be about dating, being together, or spending time together. Think of it like a cute proposal or asking someone out.
 
-Also generate a celebration message for when they say "Yes!" - it should be enthusiastic and mention coding adventures, late-night debugging sessions, or building amazing projects together.
+Also generate a celebration message for when she says "Yes!" - it should be sweet, romantic, and express happiness about being together.
 
 Format your response as JSON with this structure:
 {
-  "question": "Your fun question here",
+  "question": "Your cute romantic question here",
   "celebrationTitle": "Short celebratory title",
-  "celebrationMessage": "Longer celebration message about coding together"
+  "celebrationMessage": "Longer celebration message about being together"
 }
 
 Make it different each time - be creative! Examples could be about:
-- Building the next big thing together
-- Debugging life's challenges as a team
-- Creating amazing projects side by side
-- Being coding companions forever
-- Solving algorithms of the heart together
+- Will you be my girlfriend?
+- Want to go on adventures together?
+- Will you be mine forever?
+- Can I be your boyfriend?
+- Want to make beautiful memories together?
+- Will you let me love you forever?
+- Can we be each other's forever person?
 
-Keep it fun, sweet, and coding-themed!`;
+Keep it sweet, romantic, and genuinely cute - like something that would make a girl's heart melt!`;
 
       const response = await this.llmService.generateResponse(prompt, {
         temperature: 0.9, // High creativity
         maxTokens: 500,
-        systemPrompt: "You are a creative writer who specializes in romantic, tech-themed content. You write fun, playful, and sweet messages for couples who code together."
+        systemPrompt: "You are a hopeless romantic who writes the sweetest, most heartfelt proposals and romantic messages. You specialize in cute, genuine romantic content that makes hearts flutter."
       });
 
       let content;
@@ -81,27 +83,32 @@ Keep it fun, sweet, and coding-themed!`;
 
   private getFallbackContent(): SurpriseContent {
     const fallbackQuestions = [
-      "Will you be my coding partner forever?",
-      "Want to debug life's challenges together?",
-      "Ready to commit to our repository of love?",
-      "Shall we merge our coding dreams together?",
-      "Want to build the next big thing as a team?"
+      "Will you be my girlfriend forever? 💕",
+      "Can I be the one who makes you smile every day?",
+      "Will you let me love you with all my heart?",
+      "Want to create beautiful memories together?",
+      "Can we be each other's forever person?",
+      "Will you be mine, today and always?",
+      "Want to go on adventures together, hand in hand?"
     ];
 
     const fallbackTitles = [
-      "Yay! Let's keep building amazing things together! 🎉",
-      "Perfect! Our coding journey continues! 💻✨",
-      "Awesome! Ready for more coding adventures! 🚀",
-      "Yes! Time to build something incredible! ⭐",
-      "Fantastic! Our partnership is now officially merged! 🔀"
+      "Yay! You made my heart so happy! 💖",
+      "I'm the luckiest person in the world! ✨",
+      "You just made all my dreams come true! 🌟",
+      "My heart is bursting with joy! 💕",
+      "This is the best day ever! 🎉",
+      "You're my everything! 💝",
+      "Forever and always, it's you and me! 💞"
     ];
 
     const fallbackMessages = [
-      "Here's to many more coding adventures, late-night debugging sessions, and celebrating every small victory together! 💻✨",
-      "From algorithms to UI designs, from bugs to features - we'll tackle them all side by side! 🐛➡️✨",
-      "Ready for endless commits, pull requests, and the occasional merge conflict... but mostly lots of fun! 🎯",
-      "Let's write the most beautiful code together and create digital magic that changes the world! 🌟",
-      "Time to turn coffee into code and dreams into reality - our partnership is the best framework ever! ☕➡️🚀"
+      "I promise to make you smile every single day, hold your hand through everything, and love you more than words can say! 💕",
+      "You're my sunshine, my happiness, and my heart's greatest treasure. Here's to our beautiful forever! ✨",
+      "Every moment with you feels like a fairytale. I can't wait to write our love story together! 📖💕",
+      "You make my world brighter, my heart fuller, and my life complete. I love you endlessly! 🌟",
+      "Thank you for saying yes to being mine! I promise to cherish you, love you, and make you happy always! 💖",
+      "You're my person, my heart, my everything. Ready for a lifetime of love and laughter together! 😊💕"
     ];
 
     return {

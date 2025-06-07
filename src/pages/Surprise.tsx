@@ -298,8 +298,6 @@ function Surprise() {
               className="mt-8 text-sm text-gray-400 italic"
             >
               A little surprise from your coding companion 💝
-              <br />
-              <span className="text-xs">Powered by AI magic ✨</span>
             </motion.p>
           </motion.div>
         </div>
