@@ -101,6 +101,78 @@ export interface TimelineEvent {
   [key: string]: any; // For any other dynamic fields
 }
 
+export interface DiaryMetadata {
+  title: string;
+  author: string;
+  recipient: string;
+  occasion: string;
+  creation_date: string;
+  total_memories: number;
+  total_images: number;
+  relationship_start: string;
+  document_source: string;
+}
+
+export interface HeartfeltLetter {
+  title: string;
+  date: string;
+  category: string;
+  content: string;
+  key_themes: string[];
+  emotions: string[];
+}
+
+export interface DiaryPromise {
+  promise_number: number;
+  content: string;
+  theme: string;
+}
+
+export interface ThankYouSection {
+  title: string;
+  category: string;
+  content: string;
+  key_gratitudes: string[];
+  gifts_mentioned: string[];
+  images: string[];
+}
+
+export interface SongDedication {
+  title: string;
+  category: string;
+  song_details: {
+    song_title: string;
+    language: string;
+    meaning_explanation: string;
+    significance: string;
+  };
+  lyrics_excerpt: string;
+  personal_message: string;
+  images: string[];
+}
+
+export interface DiaryConclusion {
+  self_reflection: string;
+  love_declaration: string;
+  admiration: string;
+  self_awareness: string;
+  gratitude_summary: string;
+  authenticity_statement: string;
+  closing: string;
+}
+
+export interface SpecialSections {
+  heartfelt_letter: HeartfeltLetter;
+  promises: DiaryPromise[];
+  thank_you_section: ThankYouSection;
+  song_dedication: SongDedication;
+  final_birthday_wish: {
+    message: string;
+    age: number;
+    wishes: string;
+  };
+}
+
 export interface Announcement {
   id: string;
   text: string;
@@ -396,110 +468,22 @@ class DataService {
         await this.fixJeeAdvancedDuplicate();
       }
       
-      // Get localStorage events first (these should appear by date, not at top)
-      const localStorageEvents = await this.getLocalStorageEvents();
+      // Load ALL events at once and sort them globally
+      const allSortedEvents = await this.getAllSortedEvents();
       
-      // Get list of original event IDs that have been overridden or deleted
-      const overriddenEventIds = new Set(
-        localStorageEvents
-          .filter(event => event.originalEventId && !event.isDeleted)
-          .map(event => event.originalEventId!)
-      );
+      // Implement pagination after global sorting
+      const startIndex = page * this.PAGE_SIZE;
+      const endIndex = startIndex + this.PAGE_SIZE;
+      const pageEvents = allSortedEvents.slice(startIndex, endIndex);
+      const hasMore = endIndex < allSortedEvents.length;
       
-      const deletedEventIds = new Set(
-        localStorageEvents
-          .filter(event => event.isDeleted && event.originalEventId)
-          .map(event => event.originalEventId!)
-      );
+      console.log(`Page ${page}: Returning ${pageEvents.length} events from globally sorted list of ${allSortedEvents.length} total events`);
       
-      // Combined set of IDs to filter out
-      const filteredEventIds = new Set([...overriddenEventIds, ...deletedEventIds]);
-      
-      // Debug logging for override and delete detection
-      if (filteredEventIds.size > 0) {
-        console.log('🔍 Override & Delete Detection Debug:');
-        console.log('Overridden event IDs:', Array.from(overriddenEventIds));
-        console.log('Deleted event IDs:', Array.from(deletedEventIds));
-        localStorageEvents
-          .filter(event => event.originalEventId)
-          .forEach(event => {
-            if (event.isDeleted) {
-              console.log(`localStorage event marks original ID ${event.originalEventId} as DELETED`);
-            } else {
-              console.log(`localStorage event "${event.title}" overrides original ID: ${event.originalEventId}`);
-            }
-          });
-      }
-      
-      if (page === 0) {
-        // For first page, load JSON events and combine with localStorage
-        const metadata = await this.loadMemoryMetadata();
-        const memories = await this.loadMemoryPage(0);
-        const allJsonEvents = memories.map(memory => this.convertMemoryToTimelineEvent(memory));
-        
-        // Debug: Show which events are being filtered
-        const filteredOutEvents = allJsonEvents.filter(event => filteredEventIds.has(event.id));
-        if (filteredOutEvents.length > 0) {
-          console.log('🚫 Filtering out overridden and deleted events:');
-          filteredOutEvents.forEach(event => {
-            console.log(`  - "${event.title}" (ID: ${event.id}) - overridden or deleted`);
-          });
-        }
-        
-        const jsonEvents = allJsonEvents.filter(event => !filteredEventIds.has(event.id)); // Filter out overridden and deleted events
-        
-        // Combine all events and sort by date (filter out deleted localStorage events)
-        const allEvents = [...localStorageEvents.filter(event => !event.isDeleted), ...jsonEvents];
-        
-        // Sort ALL events by date (OLDEST first for chronological timeline)
-        allEvents.sort((a, b) => {
-          if (!a.date && !b.date) return 0;
-          if (!a.date) return 1;
-          if (!b.date) return -1;
-          return new Date(a.date).getTime() - new Date(b.date).getTime(); // OLDEST first
-        });
-        
-        // Additional debug: Show all events after sorting
-        console.log('📋 All events after combining and sorting:');
-        allEvents.forEach((event, index) => {
-          console.log(`  ${index + 1}. "${event.title}" - ${event.date || 'No date'} (ID: ${event.id}, originalEventId: ${event.originalEventId || 'none'})`);
-        });
-        
-        const hasMore = (page + 1) * this.PAGE_SIZE < metadata.total;
-        
-        console.log(`Page ${page}: ${localStorageEvents.length} localStorage + ${jsonEvents.length} JSON events (${filteredEventIds.size} overridden or deleted) = ${allEvents.length} total, sorted by date`);
-        
-        return {
-          events: allEvents,
-          hasMore,
-          total: metadata.total + localStorageEvents.length - filteredEventIds.size
-        };
-      } else {
-        // For subsequent pages, only load JSON file events (filtered)
-        const metadata = await this.loadMemoryMetadata();
-        const memories = await this.loadMemoryPage(page);
-        const events = memories
-          .map(memory => this.convertMemoryToTimelineEvent(memory))
-          .filter(event => !filteredEventIds.has(event.id)); // Filter out overridden and deleted events
-        
-        // Sort by date
-        events.sort((a, b) => {
-          if (!a.date && !b.date) return 0;
-          if (!a.date) return 1;
-          if (!b.date) return -1;
-          return new Date(a.date).getTime() - new Date(b.date).getTime(); // OLDEST first
-        });
-
-        const hasMore = (page + 1) * this.PAGE_SIZE < metadata.total;
-        
-        console.log(`Page ${page}: ${events.length} JSON events (${filteredEventIds.size} overridden or deleted), sorted by date`);
-        
-        return {
-          events,
-          hasMore,
-          total: metadata.total + localStorageEvents.length - filteredEventIds.size
-        };
-      }
+      return {
+        events: pageEvents,
+        hasMore,
+        total: allSortedEvents.length
+      };
     } catch (error) {
       console.error('Error getting timeline events page:', error);
       // Fallback to localStorage events only
@@ -512,6 +496,55 @@ class DataService {
       });
       return { events: localStorageEvents, hasMore: false, total: localStorageEvents.length };
     }
+  }
+
+  // New method to load ALL memories and sort them globally
+  private async getAllSortedEvents(): Promise<TimelineEvent[]> {
+    // Get localStorage events first
+    const localStorageEvents = await this.getLocalStorageEvents();
+    
+    // Get list of original event IDs that have been overridden or deleted
+    const overriddenEventIds = new Set(
+      localStorageEvents
+        .filter(event => event.originalEventId && !event.isDeleted)
+        .map(event => event.originalEventId!)
+    );
+    
+    const deletedEventIds = new Set(
+      localStorageEvents
+        .filter(event => event.isDeleted && event.originalEventId)
+        .map(event => event.originalEventId!)
+    );
+    
+    // Combined set of IDs to filter out
+    const filteredEventIds = new Set([...overriddenEventIds, ...deletedEventIds]);
+    
+    // Load ALL memories from JSON file at once
+    await this.loadMemoryMetadata(); // Ensure cache is loaded
+    const allMemories = this.allMemoriesCache || [];
+    
+    // Convert all memories to timeline events and filter out overridden/deleted ones
+    const allJsonEvents = allMemories
+      .map(memory => this.convertMemoryToTimelineEvent(memory))
+      .filter(event => !filteredEventIds.has(event.id));
+    
+    // Combine localStorage events (excluding deleted ones) with JSON events
+    const allEvents = [
+      ...localStorageEvents.filter(event => !event.isDeleted),
+      ...allJsonEvents
+    ];
+    
+    // Sort ALL events globally by date (OLDEST first for chronological timeline)
+    allEvents.sort((a, b) => {
+      if (!a.date && !b.date) return 0;
+      if (!a.date) return 1;
+      if (!b.date) return -1;
+      return new Date(a.date).getTime() - new Date(b.date).getTime(); // OLDEST first
+    });
+    
+    console.log(`🌍 Global sorting: ${allEvents.length} total events sorted chronologically`);
+    
+    return allEvents;
   }
 
   // Load image metadata only when needed
@@ -877,6 +910,62 @@ class DataService {
           console.error('❌ Failed to update localStorage:', error);
         }
       }
+    }
+  }
+
+  // Load diary metadata
+  async getDiaryMetadata(): Promise<DiaryMetadata | null> {
+    try {
+      const response = await fetch('/data/diary.json');
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      
+      const diaryData = await response.json();
+      return diaryData.diary_metadata || null;
+    } catch (error) {
+      console.error('Error loading diary metadata:', error);
+      return null;
+    }
+  }
+
+  // Load special sections
+  async getSpecialSections(): Promise<SpecialSections | null> {
+    try {
+      const response = await fetch('/data/diary.json');
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      
+      const diaryData = await response.json();
+      return diaryData.special_sections || null;
+    } catch (error) {
+      console.error('Error loading special sections:', error);
+      return null;
+    }
+  }
+
+  // Load diary conclusion
+  async getDiaryConclusion(): Promise<DiaryConclusion | null> {
+    try {
+      const response = await fetch('/data/diary.json');
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      
+      const diaryData = await response.json();
+      return diaryData.diary_conclusion || null;
+    } catch (error) {
+      console.error('Error loading diary conclusion:', error);
+      return null;
+    }
+  }
+
+  // Load diary statistics
+  async getDiaryStatistics(): Promise<any> {
+    try {
+      const response = await fetch('/data/diary.json');
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      
+      const diaryData = await response.json();
+      return diaryData.statistics || null;
+    } catch (error) {
+      console.error('Error loading diary statistics:', error);
+      return null;
     }
   }
 }

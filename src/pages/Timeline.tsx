@@ -3,6 +3,7 @@ import { Calendar, Plus, Heart, X, Save, Edit, Image as ImageIcon, ChevronLeft, 
 import dataService, { TimelineEvent } from '../utils/dataService';
 import { useNotification } from '../context/NotificationContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import SpecialSectionsComponent from '../components/SpecialSections';
 
 // Improved Image Component with intersection observer - adapted from old code
 const TimelineImage = React.memo(({ 
@@ -653,7 +654,7 @@ function Timeline() {
             <div className="inline-flex items-center bg-white/10 rounded-full px-6 py-2 border border-white/10 mb-6">
               <Heart className="text-pink-400 mr-2" size={18} />
               <span className="text-base font-medium">Aryan & Prisha's Journey</span>
-      </div>
+            </div>
             
             <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
               Timeline of Love
@@ -669,22 +670,6 @@ function Timeline() {
               <Plus size={20} className="mr-2" />
               Add Memory
             </button>
-            
-            {/* Memory Statistics */}
-            {displayedEvents.length > 0 && (
-              <div className="mt-6 flex flex-wrap justify-center gap-4 text-sm">
-                <div className="bg-white/10 rounded-lg px-4 py-2 border border-white/10">
-                  <span className="text-purple-300">Total Memories:</span>
-                  <span className="text-white font-semibold ml-2">{displayedEvents.length}</span>
-                </div>
-                <div className="bg-white/10 rounded-lg px-4 py-2 border border-white/10">
-                  <span className="text-yellow-300">Special Highlights:</span>
-                  <span className="text-white font-semibold ml-2">
-                    {displayedEvents.filter(e => e.isHighlight).length}
-                  </span>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Search and Filter Bar */}
@@ -1015,6 +1000,21 @@ function Timeline() {
                       <div className="text-gray-400 text-sm">
                         ✨ You've explored all your beautiful memories ✨
                       </div>
+                    </div>
+                  )}
+                  
+                  {/* Special Sections - Only show when no search/filter is active and all memories are loaded */}
+                  {!hasMorePages && !searchTerm && !selectedCategory && (
+                    <div className="mt-16 border-t border-white/10 pt-16">
+                      <div className="text-center mb-8">
+                        <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                          More from the Diary
+                        </h2>
+                        <p className="text-gray-300 max-w-xl mx-auto">
+                          Beyond memories - letters, promises, gratitude, and heartfelt thoughts
+                        </p>
+                      </div>
+                      <SpecialSectionsComponent />
                     </div>
                   )}
                 </>
