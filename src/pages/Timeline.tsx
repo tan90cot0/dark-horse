@@ -366,33 +366,6 @@ function Timeline() {
     }
   }, [currentPage, hasMorePages, isLoadingMore, showError]);
 
-  // Better intersection observer from old code with debouncing - MOVED AFTER loadMoreEvents
-  useEffect(() => {
-    if (!sentinelRef.current || !hasMorePages || isLoadingMore || isMobile) return;
-
-    let timeoutId: NodeJS.Timeout;
-    
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          // Debounce to prevent rapid calls
-          clearTimeout(timeoutId);
-          timeoutId = setTimeout(() => {
-            loadMoreEvents();
-          }, 500);
-        }
-      },
-      { threshold: 0.1, rootMargin: '200px' }
-    );
-
-    observer.observe(sentinelRef.current);
-    
-    return () => {
-      observer.disconnect();
-      clearTimeout(timeoutId);
-    };
-  }, [hasMorePages, isLoadingMore, isMobile, loadMoreEvents]);
-
   // Modal handlers
   const openAddModal = () => {
     setFormData({
@@ -973,10 +946,7 @@ function Timeline() {
                             <span>Loading more memories...</span>
                           </div>
                         ) : (
-                          <>
-                            <span>Load More Memories</span>
-                            <div className="text-xs text-white/60 mt-1">or scroll to auto-load</div>
-                          </>
+                          <span>Load More Memories</span>
                         )}
                       </button>
                     </div>
