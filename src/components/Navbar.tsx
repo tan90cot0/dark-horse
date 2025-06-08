@@ -13,14 +13,13 @@ function Navbar() {
   const location = useLocation();
 
   const navItems = [
-    { path: '/', label: 'Us', icon: Users },
+    { path: '/', label: 'Connect', icon: Users },
     { path: '/timeline', label: 'Timeline', icon: Clock },
     { path: '/map', label: 'Map', icon: Map },
     { path: '/notice-board', label: 'Notice Board', icon: MessageSquare },
     { path: '/love', label: 'Love', icon: Heart },
     { path: '/wellness', label: 'Wellness', icon: Flower2 },
-    { path: '/calendar', label: 'Calendar', icon: Calendar },
-    { path: '/chat', label: 'Chat', icon: MessageSquare }
+    { path: '/calendar', label: 'Calendar', icon: Calendar }
   ];
 
   const toggleMenu = () => {
@@ -96,8 +95,7 @@ function Navbar() {
           >
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive = location.pathname === item.path || 
-                (item.path === '/chat' && location.pathname.startsWith('/chat'));
+              const isActive = location.pathname === item.path;
               
               return (
                 <Link

@@ -1,25 +1,32 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { MessageSquare, ArrowRight, Heart } from 'lucide-react';
+import React, { useState } from 'react';
+import { MessageSquare, ArrowRight, Heart, X, Send } from 'lucide-react';
 import { useChat } from '../context/ChatContext';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import ChatInterface from '../components/Chat/ChatInterface';
 
 /**
- * Us component - Main landing page showing profiles of Aryan and Prisha
- * Allows users to navigate to chat with either persona
+ * Us component - Main landing page showing profiles with integrated chat functionality
+ * Combines profile selection with inline chat interface
  */
 function Us() {
-  const navigate = useNavigate();
-  const { startChat } = useChat();
+  const { startChat, sendMessage, endChat } = useChat();
+  const [activeChatPersona, setActiveChatPersona] = useState<'aryan' | 'prisha' | null>(null);
 
   /**
-   * Handle clicking on a profile to start a chat with selected persona
-   * Calls startChat from context and navigates to chat page
+   * Handle clicking on a profile to start inline chat
    * @param persona - The persona to chat with ('aryan' or 'prisha')
    */
   const handleChatWith = (persona: 'aryan' | 'prisha') => {
     startChat(persona);
-    navigate(`/chat/${persona}`);
+    setActiveChatPersona(persona);
+  };
+
+  /**
+   * Handle closing the chat interface
+   */
+  const handleCloseChat = () => {
+    endChat();
+    setActiveChatPersona(null);
   };
 
   /**
@@ -47,6 +54,18 @@ function Us() {
       y: 0,
       opacity: 1,
       transition: { type: "spring", stiffness: 100 }
+    }
+  };
+
+  // Define persona details for chat
+  const personaDetails = {
+    aryan: {
+      name: 'Aryan',
+      avatar: '/aryan.png'
+    },
+    prisha: {
+      name: 'Prisha',
+      avatar: '/prisha.png'
     }
   };
 
@@ -82,65 +101,118 @@ function Us() {
 
       {/* Main content container */}
       <div className="relative z-10 container mx-auto px-4 py-32">
-        <motion.div 
-          className="max-w-6xl mx-auto"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          {/* Page heading with animated gradient text */}
-          <motion.div 
-            className="text-center mb-20"
-            variants={itemVariants}
-          >
-            <motion.h1 
-              className="text-5xl md:text-7xl font-bold mb-6"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.8 }}
+        <AnimatePresence mode="wait">
+          {!activeChatPersona ? (
+            <motion.div 
+              key="profiles"
+              className="max-w-6xl mx-auto"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
             >
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
-                Welcome to Our Little Universe
-              </span>
-            </motion.h1>
-            <motion.p 
-              className="text-xl text-gray-300 max-w-2xl mx-auto"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6, duration: 0.8 }}
+              {/* Page heading with animated gradient text */}
+              <motion.div 
+                className="text-center mb-20"
+                variants={itemVariants}
+              >
+                <motion.h1 
+                  className="text-5xl md:text-7xl font-bold mb-6"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2, duration: 0.8 }}
+                >
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
+                    Welcome to Our Little Universe
+                  </span>
+                </motion.h1>
+                <motion.p 
+                  className="text-xl text-gray-300 max-w-2xl mx-auto"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.6, duration: 0.8 }}
+                >
+                  Where our hearts connect, and memories bloom
+                </motion.p>
+              </motion.div>
+
+              {/* Section heading with heart icon */}
+              <motion.div 
+                className="flex items-center justify-center mb-16"
+                variants={itemVariants}
+              >
+                <div className="flex items-center bg-white/5 backdrop-blur-md rounded-full px-8 py-3 border border-white/10">
+                  <Heart className="text-pink-400 mr-3" />
+                  <span className="text-xl font-medium">Choose Your Companion</span>
+                </div>
+              </motion.div>
+
+              {/* Profile card grid */}
+              <motion.div 
+                className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16"
+                variants={itemVariants}
+              >
+                <ProfileCard
+                  image="/aryan.png"
+                  name="Aryan"
+                  onClick={() => handleChatWith('aryan')}
+                />
+                <ProfileCard
+                  image="/prisha.png"
+                  name="Prisha"
+                  onClick={() => handleChatWith('prisha')}
+                />
+              </motion.div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="chat"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.3 }}
+              className="fixed inset-0 z-50 bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900"
             >
-              Where our hearts connect, and memories bloom
-            </motion.p>
-          </motion.div>
+              {/* Chat Header */}
+              <div className="absolute top-0 left-0 right-0 z-60 bg-black/30 backdrop-blur-lg border-b border-white/10 px-4 py-3 mt-16">
+                <div className="flex items-center justify-between max-w-3xl mx-auto">
+                  <div className="flex items-center space-x-3">
+                    <img 
+                      src={personaDetails[activeChatPersona].avatar} 
+                      alt={personaDetails[activeChatPersona].name}
+                      className="w-10 h-10 rounded-full object-cover border-2 border-purple-500/50"
+                    />
+                    <div>
+                      <h3 className="font-semibold text-white">
+                        {personaDetails[activeChatPersona].name}
+                      </h3>
+                      <p className="text-xs text-gray-400">Available to chat</p>
+                    </div>
+                  </div>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleCloseChat}
+                    className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors text-white"
+                  >
+                    <X size={20} />
+                  </motion.button>
+                </div>
+              </div>
 
-          {/* Section heading with heart icon */}
-          <motion.div 
-            className="flex items-center justify-center mb-16"
-            variants={itemVariants}
-          >
-            <div className="flex items-center bg-white/5 backdrop-blur-md rounded-full px-8 py-3 border border-white/10">
-              <Heart className="text-pink-400 mr-3" />
-              <span className="text-xl font-medium">Choose Your Companion</span>
-            </div>
-          </motion.div>
-
-          {/* Profile card grid */}
-          <motion.div 
-            className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16"
-            variants={itemVariants}
-          >
-            <ProfileCard
-              image="/aryan.png"
-              name="Aryan"
-              onClick={() => handleChatWith('aryan')}
-            />
-            <ProfileCard
-              image="/prisha.png"
-              name="Prisha"
-              onClick={() => handleChatWith('prisha')}
-            />
-          </motion.div>
-        </motion.div>
+              {/* Chat Interface */}
+              <div className="pt-20 h-full">
+                <ChatInterface
+                  name={personaDetails[activeChatPersona].name}
+                  avatar={personaDetails[activeChatPersona].avatar}
+                  onClose={handleCloseChat}
+                  sendMessage={sendMessage}
+                  showBackButton={false}
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

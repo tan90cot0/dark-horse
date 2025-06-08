@@ -9,7 +9,6 @@ import NoticeBoard from './pages/NoticeBoard';
 import Love from './pages/Love';
 import CycleTracker from './pages/CycleTracker';
 import RelationshipCalendar from './pages/RelationshipCalendar';
-import Chat from './pages/Chat';
 import { ChatProvider } from './context/ChatContext';
 import { NotificationProvider } from './context/NotificationContext';
 import './index.css';
@@ -30,8 +29,6 @@ function App() {
                 <Route path="/love" element={<Love />} />
                 <Route path="/wellness" element={<CycleTracker />} />
                 <Route path="/calendar" element={<RelationshipCalendar />} />
-                <Route path="/chat" element={<Chat />} />
-                <Route path="/chat/:persona" element={<Chat />} />
               </Routes>
             </main>
             <Toaster 
