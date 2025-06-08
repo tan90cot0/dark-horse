@@ -990,8 +990,8 @@ function Timeline() {
                     </div>
                   )}
                   
-                  {/* Special Sections - Only show when no search/filter is active and all memories are loaded */}
-                  {!hasMorePages && !searchTerm && !selectedCategory && (
+                  {/* Special Sections - Only show when no search/filter is active */}
+                  {!searchTerm && !selectedCategory && (
                     <div className="mt-16 border-t border-white/10 pt-16">
                       <div className="text-center mb-8">
                         <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
