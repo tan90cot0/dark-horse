@@ -100,7 +100,7 @@ function Us() {
               transition={{ delay: 0.2, duration: 0.8 }}
             >
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
-                Welcome to Humaara Adda
+                Welcome to Our Little Universe
               </span>
             </motion.h1>
             <motion.p 

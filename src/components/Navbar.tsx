@@ -40,7 +40,7 @@ function Navbar() {
             <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-500 rounded-lg flex items-center justify-center">
               <Heart className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-xl gradient-text">Our Story</span>
+            <span className="font-bold text-xl gradient-text">Our Little Universe</span>
           </Link>
 
           {/* Desktop Navigation */}

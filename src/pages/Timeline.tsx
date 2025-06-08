@@ -625,7 +625,7 @@ function Timeline() {
               Timeline of Love
             </h1>
             <p className="text-gray-300 max-w-xl mx-auto mb-8">
-              A beautiful chronological journey through our cherished memories.
+              A beautiful chronological journey through our little universe of cherished memories.
             </p>
             
             <button
