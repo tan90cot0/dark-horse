@@ -21,8 +21,6 @@ function Map() {
   // Add/Edit functionality state
   const [showAddEditModal, setShowAddEditModal] = useState(false);
   const [editingMarker, setEditingMarker] = useState<Marker | null>(null);
-  const [isAddingMode, setIsAddingMode] = useState(false);
-  const [newMarkerPosition, setNewMarkerPosition] = useState<{lat: number, lng: number} | null>(null);
   
   const { showSuccess, showError } = useNotification();
 
@@ -76,16 +74,6 @@ function Map() {
     }
   };
 
-  // Handle map click for adding new markers
-  const handleMapClick = (lat: number, lng: number) => {
-    if (isAddingMode) {
-      setNewMarkerPosition({ lat, lng });
-      setEditingMarker(null);
-      setShowAddEditModal(true);
-      setIsAddingMode(false);
-    }
-  };
-
   // Handle search query change
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
@@ -100,15 +88,12 @@ function Map() {
 
   // Add new marker
   const handleAddMarker = () => {
-    setIsAddingMode(true);
-    setSelectedMarkerId(null);
-    showSuccess('Click on the map', 'Click anywhere on the map to add a new location marker.');
+    setShowAddEditModal(true);
   };
 
   // Edit existing marker
   const handleEditMarker = (marker: Marker) => {
     setEditingMarker(marker);
-    setNewMarkerPosition(null);
     setShowAddEditModal(true);
   };
 
@@ -126,11 +111,11 @@ function Map() {
           updatedMarkers[index] = { ...editingMarker, ...markerData } as Marker;
           showSuccess('Marker updated!', 'The location has been successfully updated.');
         }
-      } else if (newMarkerPosition) {
+      } else {
         // Add new marker
         const newMarker: Marker = {
           id: `marker_${Date.now()}`,
-          position: newMarkerPosition,
+          position: markerData.position || { lat: 0, lng: 0 },
           popup: {
             name: markerData.popup?.name || 'New Location',
             date: markerData.popup?.date || new Date().toDateString(),
@@ -155,7 +140,6 @@ function Map() {
       
       setShowAddEditModal(false);
       setEditingMarker(null);
-      setNewMarkerPosition(null);
     } catch (error) {
       console.error('Error saving marker:', error);
       showError('Save failed', 'Failed to save the marker. Please try again.');
@@ -342,8 +326,6 @@ function Map() {
                   mapData={mapData}
                   selectedMarkerId={selectedMarkerId}
                   onMarkerClick={handleMarkerClick}
-                  onMapClick={handleMapClick}
-                  isAddingMode={isAddingMode}
                 />
               )}
               
@@ -373,11 +355,6 @@ function Map() {
             <div className="flex items-center bg-white/5 backdrop-blur-md rounded-full px-4 py-2 border border-white/10">
               <span className="text-sm text-white/70">{mapData.markers.length} locations mapped</span>
             </div>
-            {isAddingMode && (
-              <div className="flex items-center bg-purple-600/20 backdrop-blur-md rounded-full px-4 py-2 border border-purple-500/30">
-                <span className="text-sm text-purple-300">Click on map to add location</span>
-              </div>
-            )}
           </motion.div>
         </motion.div>
       </div>
@@ -388,12 +365,9 @@ function Map() {
         onClose={() => {
           setShowAddEditModal(false);
           setEditingMarker(null);
-          setNewMarkerPosition(null);
-          setIsAddingMode(false);
         }}
         onSave={handleSaveMarker}
         marker={editingMarker}
-        position={newMarkerPosition}
       />
     </div>
   );

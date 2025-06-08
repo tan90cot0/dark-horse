@@ -45,45 +45,13 @@ const MapView: React.FC<MapViewProps> = ({ center, zoom }) => {
   return null;
 };
 
-// Component to handle map click events
-interface MapClickHandlerProps {
-  onMapClick?: (lat: number, lng: number) => void;
-  isAddingMode: boolean;
-}
-
-const MapClickHandler: React.FC<MapClickHandlerProps> = ({ onMapClick, isAddingMode }) => {
-  const map = useMapEvents({
-    click(e) {
-      if (isAddingMode && onMapClick) {
-        onMapClick(e.latlng.lat, e.latlng.lng);
-      }
-    },
-  });
-
-  // Change cursor style when in adding mode
-  useEffect(() => {
-    if (map) {
-      const container = map.getContainer();
-      if (isAddingMode) {
-        container.style.cursor = 'crosshair';
-      } else {
-        container.style.cursor = '';
-      }
-    }
-  }, [map, isAddingMode]);
-
-  return null;
-};
-
 interface LeafletMapProps {
   mapData: MapData;
   selectedMarkerId: string | null;
   onMarkerClick: (markerId: string) => void;
-  onMapClick?: (lat: number, lng: number) => void;
-  isAddingMode?: boolean;
 }
 
-const LeafletMap: React.FC<LeafletMapProps> = ({ mapData, selectedMarkerId, onMarkerClick, onMapClick, isAddingMode }) => {
+const LeafletMap: React.FC<LeafletMapProps> = ({ mapData, selectedMarkerId, onMarkerClick }) => {
   const [activeMarker, setActiveMarker] = useState<MapMarker | null>(null);
   
   // Set center and zoom from map data
@@ -147,9 +115,6 @@ const LeafletMap: React.FC<LeafletMapProps> = ({ mapData, selectedMarkerId, onMa
           </Marker>
         ))}
       </MarkerClusterGroup>
-
-      {/* Map click handler */}
-      <MapClickHandler onMapClick={onMapClick} isAddingMode={isAddingMode || false} />
     </MapContainer>
   );
 };

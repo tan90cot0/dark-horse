@@ -26,7 +26,9 @@ const AddEditMarkerModal: React.FC<AddEditMarkerModalProps> = ({
     imageUrl: '',
     imageAlt: '',
     imageWidth: 300,
-    imageHeight: 200
+    imageHeight: 200,
+    latitude: 0,
+    longitude: 0
   });
   
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -45,7 +47,9 @@ const AddEditMarkerModal: React.FC<AddEditMarkerModalProps> = ({
           imageUrl: marker.popup.image.src,
           imageAlt: marker.popup.image.alt,
           imageWidth: marker.popup.image.width,
-          imageHeight: marker.popup.image.height
+          imageHeight: marker.popup.image.height,
+          latitude: marker.position.lat,
+          longitude: marker.position.lng
         });
       } else {
         // Add mode - reset form
@@ -61,7 +65,9 @@ const AddEditMarkerModal: React.FC<AddEditMarkerModalProps> = ({
           imageUrl: 'https://via.placeholder.com/300x200?text=No+Image',
           imageAlt: 'Location image',
           imageWidth: 300,
-          imageHeight: 200
+          imageHeight: 200,
+          latitude: 0,
+          longitude: 0
         });
       }
       setErrors({});
@@ -95,6 +101,15 @@ const AddEditMarkerModal: React.FC<AddEditMarkerModalProps> = ({
       newErrors.imageUrl = 'Image URL must be a valid URL';
     }
 
+    // Validate coordinates
+    if (isNaN(formData.latitude) || formData.latitude < -90 || formData.latitude > 90) {
+      newErrors.latitude = 'Latitude must be between -90 and 90';
+    }
+    
+    if (isNaN(formData.longitude) || formData.longitude < -180 || formData.longitude > 180) {
+      newErrors.longitude = 'Longitude must be between -180 and 180';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -117,13 +132,12 @@ const AddEditMarkerModal: React.FC<AddEditMarkerModalProps> = ({
             width: formData.imageWidth,
             height: formData.imageHeight
           }
+        },
+        position: {
+          lat: formData.latitude,
+          lng: formData.longitude
         }
       };
-      
-      // If editing, include position
-      if (marker) {
-        markerData.position = marker.position;
-      }
       
       await onSave(markerData);
       onClose();
@@ -172,20 +186,39 @@ const AddEditMarkerModal: React.FC<AddEditMarkerModalProps> = ({
               </button>
             </div>
 
-            {/* Position Info */}
-            {(position || marker) && (
-              <div className="mb-4 p-3 bg-white/5 rounded-lg border border-white/10">
-                <div className="flex items-center text-sm text-white/70">
-                  <MapPin size={14} className="mr-2 text-purple-400" />
-                  <span>
-                    {marker ? 
-                      `${marker.position.lat.toFixed(6)}, ${marker.position.lng.toFixed(6)}` :
-                      `${position?.lat.toFixed(6)}, ${position?.lng.toFixed(6)}`
-                    }
-                  </span>
+            {/* Coordinates */}
+            <div className="mb-4 p-3 bg-white/5 rounded-lg border border-white/10">
+              <div className="flex items-center text-sm text-white/70 mb-2">
+                <MapPin size={14} className="mr-2 text-purple-400" />
+                <span className="font-medium">Coordinates</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-white/60 mb-1">Latitude *</label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={formData.latitude}
+                    onChange={(e) => handleInputChange('latitude', parseFloat(e.target.value) || 0)}
+                    className="w-full p-2 bg-white/10 border border-white/20 rounded text-white text-sm focus:border-purple-500 transition-colors"
+                    placeholder="28.6139"
+                  />
+                  {errors.latitude && <p className="text-red-400 text-xs mt-1">{errors.latitude}</p>}
+                </div>
+                <div>
+                  <label className="block text-xs text-white/60 mb-1">Longitude *</label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={formData.longitude}
+                    onChange={(e) => handleInputChange('longitude', parseFloat(e.target.value) || 0)}
+                    className="w-full p-2 bg-white/10 border border-white/20 rounded text-white text-sm focus:border-purple-500 transition-colors"
+                    placeholder="77.2088"
+                  />
+                  {errors.longitude && <p className="text-red-400 text-xs mt-1">{errors.longitude}</p>}
                 </div>
               </div>
-            )}
+            </div>
 
             {/* Form */}
             <div className="space-y-4">
