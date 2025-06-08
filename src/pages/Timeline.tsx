@@ -19,15 +19,8 @@ const TimelineImage = React.memo(({
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [shouldLoad, setShouldLoad] = useState(false);
+  const [imageExists, setImageExists] = useState<boolean | null>(null);
   const imgRef = useRef<HTMLDivElement>(null);
-
-  // Check if there's actually an image to load
-  const hasImage = event.image && event.image !== 'placeholder' && event.image !== '';
-  
-  // If no image exists, don't render anything
-  if (!hasImage) {
-    return null;
-  }
 
   // Intersection observer for better performance
   useEffect(() => {
@@ -51,10 +44,10 @@ const TimelineImage = React.memo(({
 
   // Load image only when needed
   useEffect(() => {
-    if (shouldLoad && !imageData && !isLoading && !hasError) {
+    if (shouldLoad && !imageData && !isLoading && !hasError && imageExists !== false) {
       loadImage();
     }
-  }, [shouldLoad, imageData, isLoading, hasError, event.image]);
+  }, [shouldLoad, imageData, isLoading, hasError, event.image, imageExists]);
 
   // Reset image state when event.image changes (important for localStorage events)
   useEffect(() => {
@@ -62,6 +55,7 @@ const TimelineImage = React.memo(({
       setImageData('');
       setHasError(false);
       setIsLoading(false);
+      setImageExists(null);
       // Force immediate reload for localStorage events with image data
       if (event.image.startsWith('data:image/') || event.image.startsWith('/9j/') || event.image.startsWith('iVBOR')) {
         let formattedImageData = event.image;
@@ -69,7 +63,10 @@ const TimelineImage = React.memo(({
           formattedImageData = `data:image/jpeg;base64,${formattedImageData}`;
         }
         setImageData(formattedImageData);
+        setImageExists(true);
       }
+    } else if (!event.image || event.image === 'placeholder' || event.image === '') {
+      setImageExists(false);
     }
   }, [event.image, imageData]);
 
@@ -87,25 +84,24 @@ const TimelineImage = React.memo(({
         }
         
         setImageData(imageData);
-        setIsLoading(false);
-        return;
-      }
-      
-      // Fallback to loading from JSON files (for original timeline events)
-      console.log(`Loading image from JSON files for event ${event.id}: "${event.title}"`);
-      const image = await dataService.loadImageForEvent(event);
-      if (image) {
-        setImageData(image);
+        setImageExists(true);
       } else {
+        setImageExists(false);
         setHasError(true);
       }
     } catch (error) {
       console.error(`Error loading image for ${event.id}:`, error);
+      setImageExists(false);
       setHasError(true);
     } finally {
       setIsLoading(false);
     }
   };
+
+  // If we've determined no image exists, don't render anything
+  if (imageExists === false) {
+    return null;
+  }
 
   const handleImageClick = () => {
     if (imageData && onImageClick) {
@@ -115,7 +111,7 @@ const TimelineImage = React.memo(({
 
   return (
     <div ref={imgRef} className="relative">
-      {!imageData && !isLoading && !hasError && (
+      {!imageData && !isLoading && !hasError && (imageExists === true || imageExists === null) && (
         <div className={`${className} bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center`}>
           <div className="text-center">
             <ImageIcon size={32} className="mx-auto mb-2 text-gray-500" />
@@ -133,7 +129,7 @@ const TimelineImage = React.memo(({
         </div>
       )}
       
-      {hasError && (
+      {hasError && imageExists !== null && (
         <div className={`${className} bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center`}>
           <div className="text-center">
             <ImageIcon size={32} className="mx-auto mb-2 text-gray-500" />
