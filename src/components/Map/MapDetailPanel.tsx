@@ -1,14 +1,16 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, MapPin, ExternalLink, X } from 'lucide-react';
+import { Calendar, MapPin, ExternalLink, X, Edit, Trash2 } from 'lucide-react';
 import { Marker } from '../../data/mapData';
 
 interface MapDetailPanelProps {
   marker: Marker | null;
   onClose: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
-const MapDetailPanel: React.FC<MapDetailPanelProps> = ({ marker, onClose }) => {
+const MapDetailPanel: React.FC<MapDetailPanelProps> = ({ marker, onClose, onEdit, onDelete }) => {
   if (!marker) return null;
   
   const { popup } = marker;
@@ -87,13 +89,40 @@ const MapDetailPanel: React.FC<MapDetailPanelProps> = ({ marker, onClose }) => {
           
           <p className="text-white/80 mb-6 text-sm leading-relaxed">{popup.description}</p>
           
-          <button
-            onClick={handleAlbumClick}
-            className="w-full flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 px-4 rounded-xl transition-colors"
-          >
-            <ExternalLink size={16} className="mr-2" />
-            View Photo Album
-          </button>
+          {/* Action Buttons */}
+          <div className="space-y-3">
+            <button
+              onClick={handleAlbumClick}
+              className="w-full flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 px-4 rounded-xl transition-colors"
+            >
+              <ExternalLink size={16} className="mr-2" />
+              View Photo Album
+            </button>
+            
+            {/* Edit and Delete buttons */}
+            {(onEdit || onDelete) && (
+              <div className="grid grid-cols-2 gap-2">
+                {onEdit && (
+                  <button
+                    onClick={onEdit}
+                    className="flex items-center justify-center bg-white/10 hover:bg-white/20 text-white py-2 px-3 rounded-lg transition-colors"
+                  >
+                    <Edit size={14} className="mr-1" />
+                    Edit
+                  </button>
+                )}
+                {onDelete && (
+                  <button
+                    onClick={onDelete}
+                    className="flex items-center justify-center bg-red-600/20 hover:bg-red-600/30 text-red-300 py-2 px-3 rounded-lg transition-colors"
+                  >
+                    <Trash2 size={14} className="mr-1" />
+                    Delete
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </motion.div>

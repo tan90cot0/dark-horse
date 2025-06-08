@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Map as MapIcon, Search, Plus, MapPin, List, X } from 'lucide-react';
+import { Map as MapIcon, Search, Plus, MapPin, List, X, Edit, Save, Trash2 } from 'lucide-react';
 import { getMapData, MapData, Marker } from '../data/mapData';
 import LeafletMap from '../components/Map/LeafletMap';
 import LocationList from '../components/Map/LocationList';
 import MapDetailPanel from '../components/Map/MapDetailPanel';
+import AddEditMarkerModal from '../components/Map/AddEditMarkerModal';
+import { useNotification } from '../context/NotificationContext';
 import '../components/Map/map.css';
 
 function Map() {
@@ -15,6 +17,14 @@ function Map() {
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
   const [showMobileList, setShowMobileList] = useState(false);
+  
+  // Add/Edit functionality state
+  const [showAddEditModal, setShowAddEditModal] = useState(false);
+  const [editingMarker, setEditingMarker] = useState<Marker | null>(null);
+  const [isAddingMode, setIsAddingMode] = useState(false);
+  const [newMarkerPosition, setNewMarkerPosition] = useState<{lat: number, lng: number} | null>(null);
+  
+  const { showSuccess, showError } = useNotification();
 
   // Load map data
   useEffect(() => {
@@ -66,6 +76,16 @@ function Map() {
     }
   };
 
+  // Handle map click for adding new markers
+  const handleMapClick = (lat: number, lng: number) => {
+    if (isAddingMode) {
+      setNewMarkerPosition({ lat, lng });
+      setEditingMarker(null);
+      setShowAddEditModal(true);
+      setIsAddingMode(false);
+    }
+  };
+
   // Handle search query change
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
@@ -77,6 +97,94 @@ function Map() {
     marker.popup.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
     marker.popup.date.toLowerCase().includes(searchQuery.toLowerCase())
   ) : [];
+
+  // Add new marker
+  const handleAddMarker = () => {
+    setIsAddingMode(true);
+    setSelectedMarkerId(null);
+    showSuccess('Click on the map', 'Click anywhere on the map to add a new location marker.');
+  };
+
+  // Edit existing marker
+  const handleEditMarker = (marker: Marker) => {
+    setEditingMarker(marker);
+    setNewMarkerPosition(null);
+    setShowAddEditModal(true);
+  };
+
+  // Save marker (add or edit)
+  const handleSaveMarker = async (markerData: Partial<Marker>) => {
+    if (!mapData) return;
+
+    try {
+      let updatedMarkers = [...mapData.markers];
+      
+      if (editingMarker) {
+        // Edit existing marker
+        const index = updatedMarkers.findIndex(m => m.id === editingMarker.id);
+        if (index !== -1) {
+          updatedMarkers[index] = { ...editingMarker, ...markerData } as Marker;
+          showSuccess('Marker updated!', 'The location has been successfully updated.');
+        }
+      } else if (newMarkerPosition) {
+        // Add new marker
+        const newMarker: Marker = {
+          id: `marker_${Date.now()}`,
+          position: newMarkerPosition,
+          popup: {
+            name: markerData.popup?.name || 'New Location',
+            date: markerData.popup?.date || new Date().toDateString(),
+            description: markerData.popup?.description || 'A memorable place',
+            album_link: markerData.popup?.album_link || '',
+            image: markerData.popup?.image || {
+              src: 'https://via.placeholder.com/300x200?text=No+Image',
+              alt: 'No image available',
+              width: 300,
+              height: 200
+            }
+          }
+        };
+        updatedMarkers.push(newMarker);
+        showSuccess('Marker added!', 'New location has been added to the map.');
+      }
+
+      setMapData({
+        ...mapData,
+        markers: updatedMarkers
+      });
+      
+      setShowAddEditModal(false);
+      setEditingMarker(null);
+      setNewMarkerPosition(null);
+    } catch (error) {
+      console.error('Error saving marker:', error);
+      showError('Save failed', 'Failed to save the marker. Please try again.');
+    }
+  };
+
+  // Delete marker
+  const handleDeleteMarker = async (markerId: string) => {
+    if (!mapData) return;
+
+    const marker = mapData.markers.find(m => m.id === markerId);
+    if (!marker) return;
+
+    if (confirm(`Are you sure you want to delete "${marker.popup.name}"? This action cannot be undone.`)) {
+      try {
+        const updatedMarkers = mapData.markers.filter(m => m.id !== markerId);
+        setMapData({
+          ...mapData,
+          markers: updatedMarkers
+        });
+        
+        setSelectedMarkerId(null);
+        showSuccess('Marker deleted', 'The location has been removed from the map.');
+      } catch (error) {
+        console.error('Error deleting marker:', error);
+        showError('Delete failed', 'Failed to delete the marker. Please try again.');
+      }
+    }
+  };
 
   // Animation variants
   const containerVariants = {
@@ -152,7 +260,7 @@ function Map() {
           
           {/* Mobile View Toggler */}
           {viewMode === 'mobile' && (
-            <div className="mb-4 flex justify-center">
+            <div className="mb-4 flex justify-center space-x-2">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -170,6 +278,31 @@ function Map() {
                     <span>View Locations</span>
                   </>
                 )}
+              </motion.button>
+              
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleAddMarker}
+                className="flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 border border-purple-500/30 rounded-full px-6 py-2 text-white"
+              >
+                <Plus size={16} />
+                <span>Add Location</span>
+              </motion.button>
+            </div>
+          )}
+          
+          {/* Desktop Add Button */}
+          {viewMode === 'desktop' && (
+            <div className="mb-4 flex justify-center">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleAddMarker}
+                className="flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 border border-purple-500/30 rounded-full px-8 py-3 text-white font-medium shadow-lg"
+              >
+                <Plus size={20} />
+                <span>Add New Location</span>
               </motion.button>
             </div>
           )}
@@ -209,6 +342,8 @@ function Map() {
                   mapData={mapData}
                   selectedMarkerId={selectedMarkerId}
                   onMarkerClick={handleMarkerClick}
+                  onMapClick={handleMapClick}
+                  isAddingMode={isAddingMode}
                 />
               )}
               
@@ -218,6 +353,8 @@ function Map() {
                   <MapDetailPanel
                     marker={selectedMarker}
                     onClose={() => setSelectedMarkerId(null)}
+                    onEdit={() => handleEditMarker(selectedMarker)}
+                    onDelete={() => handleDeleteMarker(selectedMarker.id)}
                   />
                 )}
               </AnimatePresence>
@@ -236,9 +373,28 @@ function Map() {
             <div className="flex items-center bg-white/5 backdrop-blur-md rounded-full px-4 py-2 border border-white/10">
               <span className="text-sm text-white/70">{mapData.markers.length} locations mapped</span>
             </div>
+            {isAddingMode && (
+              <div className="flex items-center bg-purple-600/20 backdrop-blur-md rounded-full px-4 py-2 border border-purple-500/30">
+                <span className="text-sm text-purple-300">Click on map to add location</span>
+              </div>
+            )}
           </motion.div>
         </motion.div>
       </div>
+      
+      {/* Add/Edit Marker Modal */}
+      <AddEditMarkerModal
+        isOpen={showAddEditModal}
+        onClose={() => {
+          setShowAddEditModal(false);
+          setEditingMarker(null);
+          setNewMarkerPosition(null);
+          setIsAddingMode(false);
+        }}
+        onSave={handleSaveMarker}
+        marker={editingMarker}
+        position={newMarkerPosition}
+      />
     </div>
   );
 }
