@@ -19,7 +19,6 @@ const TimelineImage = React.memo(({
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [shouldLoad, setShouldLoad] = useState(false);
-  const [imageExists, setImageExists] = useState<boolean | null>(null);
   const imgRef = useRef<HTMLDivElement>(null);
 
   // Intersection observer for better performance
@@ -44,10 +43,10 @@ const TimelineImage = React.memo(({
 
   // Load image only when needed
   useEffect(() => {
-    if (shouldLoad && !imageData && !isLoading && !hasError && imageExists !== false) {
+    if (shouldLoad && !imageData && !isLoading && !hasError) {
       loadImage();
     }
-  }, [shouldLoad, imageData, isLoading, hasError, event.image, imageExists]);
+  }, [shouldLoad, imageData, isLoading, hasError, event.image]);
 
   // Reset image state when event.image changes (important for localStorage events)
   useEffect(() => {
@@ -55,7 +54,6 @@ const TimelineImage = React.memo(({
       setImageData('');
       setHasError(false);
       setIsLoading(false);
-      setImageExists(null);
       // Force immediate reload for localStorage events with image data
       if (event.image.startsWith('data:image/') || event.image.startsWith('/9j/') || event.image.startsWith('iVBOR')) {
         let formattedImageData = event.image;
@@ -63,10 +61,7 @@ const TimelineImage = React.memo(({
           formattedImageData = `data:image/jpeg;base64,${formattedImageData}`;
         }
         setImageData(formattedImageData);
-        setImageExists(true);
       }
-    } else if (!event.image || event.image === 'placeholder' || event.image === '') {
-      setImageExists(false);
     }
   }, [event.image, imageData]);
 
@@ -84,24 +79,25 @@ const TimelineImage = React.memo(({
         }
         
         setImageData(imageData);
-        setImageExists(true);
+        setIsLoading(false);
+        return;
+      }
+      
+      // Fallback to loading from JSON files (for original timeline events)
+      console.log(`Loading image from JSON files for event ${event.id}: "${event.title}"`);
+      const image = await dataService.loadImageForEvent(event);
+      if (image) {
+        setImageData(image);
       } else {
-        setImageExists(false);
         setHasError(true);
       }
     } catch (error) {
       console.error(`Error loading image for ${event.id}:`, error);
-      setImageExists(false);
       setHasError(true);
     } finally {
       setIsLoading(false);
     }
   };
-
-  // If we've determined no image exists, don't render anything
-  if (imageExists === false) {
-    return null;
-  }
 
   const handleImageClick = () => {
     if (imageData && onImageClick) {
@@ -111,7 +107,7 @@ const TimelineImage = React.memo(({
 
   return (
     <div ref={imgRef} className="relative">
-      {!imageData && !isLoading && !hasError && (imageExists === true || imageExists === null) && (
+      {!imageData && !isLoading && !hasError && (
         <div className={`${className} bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center`}>
           <div className="text-center">
             <ImageIcon size={32} className="mx-auto mb-2 text-gray-500" />
@@ -129,7 +125,7 @@ const TimelineImage = React.memo(({
         </div>
       )}
       
-      {hasError && imageExists !== null && (
+      {hasError && (
         <div className={`${className} bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center`}>
           <div className="text-center">
             <ImageIcon size={32} className="mx-auto mb-2 text-gray-500" />
@@ -817,14 +813,11 @@ function Timeline() {
                                 <ExpandableText text={event.description} maxLength={150} />
                               </div>
                               
-                              {/* Only show image if it exists */}
-                              {event.image && event.image !== 'placeholder' && event.image !== '' && (
-                                <TimelineImage 
-                                  event={event} 
-                                  className="w-full h-32 object-cover rounded-lg" 
-                                  onImageClick={openImageModal} 
-                                />
-                              )}
+                              <TimelineImage 
+                                event={event} 
+                                className="w-full h-32 object-cover rounded-lg" 
+                                onImageClick={openImageModal} 
+                              />
                               
                               <div className="flex justify-end pt-2">
                   <button 
@@ -951,16 +944,14 @@ function Timeline() {
                                 </div>
                         </div>
                         
-                              {/* Right side - Image (only if image exists) */}
-                              {event.image && event.image !== 'placeholder' && event.image !== '' && (
-                                <div className="lg:w-80 lg:p-6 lg:flex lg:items-center lg:justify-center">
-                                  <TimelineImage 
-                                    event={event} 
-                                    className="w-full h-64 object-cover rounded-lg shadow-xl border border-purple-500/30" 
-                                    onImageClick={openImageModal} 
-                                  />
-                                </div>
-                              )}
+                              {/* Right side - Image */}
+                              <div className="lg:w-80 lg:p-6 lg:flex lg:items-center lg:justify-center">
+                                <TimelineImage 
+                                  event={event} 
+                                  className="w-full h-64 object-cover rounded-lg shadow-xl border border-purple-500/30" 
+                                  onImageClick={openImageModal} 
+                                />
+                              </div>
                             </div>
                           </div>
                         </div>
